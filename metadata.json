@@ -1,0 +1,7 @@
+{
+  "name": "Fomí",
+  "description": "Encontre o restaurante perfeito para cada momento.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
