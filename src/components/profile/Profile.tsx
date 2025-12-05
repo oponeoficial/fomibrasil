@@ -30,6 +30,7 @@ interface ProfileProps {
   onLogout: () => void;
   onEditProfile: () => void;
   onSettings: () => void;
+  onNavigateToSaved?: () => void;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -41,6 +42,7 @@ export const Profile: React.FC<ProfileProps> = ({
   onLogout,
   onEditProfile,
   onSettings,
+  onNavigateToSaved,
 }) => {
   const menuItems = [
     { id: 'saved', icon: <Heart size={20} />, label: 'Restaurantes Salvos', value: stats.saved },
@@ -232,6 +234,7 @@ export const Profile: React.FC<ProfileProps> = ({
               label={item.label}
               value={item.value}
               showBorder={index < menuItems.length - 1}
+              onClick={item.id === 'saved' ? onNavigateToSaved : undefined}
             />
           ))}
         </div>

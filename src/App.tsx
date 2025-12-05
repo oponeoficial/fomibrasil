@@ -7,6 +7,7 @@ import { BottomNavigation } from './components/layout/BottomNavigation';
 import { RestaurantCard } from './components/restaurant/RestaurantCard';
 import { RestaurantDetails } from './components/restaurant/RestaurantDetails';
 import { Profile } from './components/profile/Profile';
+import { SavedRestaurants } from './components/saved/SavedRestaurants';
 import { Welcome } from './components/onboarding/Welcome';
 import { Location } from './components/onboarding/Location';
 import { Preferences } from './components/onboarding/Preferences';
@@ -32,7 +33,8 @@ type AppScreen =
   | 'login'
   | 'signup'
   | 'email-confirmation'
-  | 'post-signup';
+  | 'post-signup'
+  | 'saved-restaurants';
 
 export default function App() {
   // Auth state
@@ -340,6 +342,23 @@ export default function App() {
     return <PostSignup onComplete={handlePostSignupComplete} />;
   }
 
+  // Saved Restaurants
+  if (screen === 'saved-restaurants') {
+    return (
+      <SavedRestaurants
+        userId={user?.id || null}
+        onBack={() => setScreen(user ? 'feed' : 'guest-feed')}
+        onRestaurantClick={(restaurantId) => {
+          // Encontrar restaurante pelo ID e abrir detalhes
+          const restaurant = mockRestaurants.find(r => r.id.toString() === restaurantId);
+          if (restaurant) {
+            setSelectedRestaurant(restaurant);
+          }
+        }}
+      />
+    );
+  }
+
   // ========================================
   // FEED (Guest ou Logged)
   // ========================================
@@ -367,6 +386,7 @@ export default function App() {
         userName={userName}
         onNavigate={(section) => {
           if (section === 'home') setActiveTab('home');
+          if (section === 'saved') setScreen('saved-restaurants');
           if (section === 'logout') {
             if (user) {
               supabase.auth.signOut();
@@ -399,6 +419,7 @@ export default function App() {
             }}
             onEditProfile={() => {}}
             onSettings={() => {}}
+            onNavigateToSaved={() => setScreen('saved-restaurants')}
           />
         )}
 
