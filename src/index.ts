@@ -1,42 +1,38 @@
-// Types
-export * from './types';
-export * from './types/database';
+export interface Review {
+  id: number;
+  user: string;
+  userImage: string;
+  rating: number;
+  text: string;
+  date: string;
+  tags: string[];
+  likes: number;
+  useful: boolean;
+}
 
-// Layout Components
-export { Header } from './components/layout/Header';
-export { Sidebar } from './components/layout/Sidebar';
-export { BottomNavigation } from './components/layout/BottomNavigation';
-export { FilterPanel } from './components/layout/FilterPanel';
+export interface Restaurant {
+  id: number;
+  name: string;
+  image: string;
+  gallery: string[];
+  description: string;
+  tags: { text: string; color: string }[];
+  rating: number;
+  reviewCount: number;
+  distance: string;
+  price: string;
+  address: string;
+  phone: string;
+  website: string;
+  hours: string;
+  ratingsBreakdown: {
+    food: number;
+    service: number;
+    ambiance: number;
+  };
+  reviews: Review[];
+  features: string[];
+  longDescription: string;
+}
 
-// Common Components
-export { Button } from './components/common/Button';
-export { Logo, LogoIllustration } from './components/common/Logo';
-
-// Restaurant Components
-export { RestaurantCard } from './components/restaurant/RestaurantCard';
-export { RestaurantDetails } from './components/restaurant/RestaurantDetails';
-
-// Auth Components
-export { Login } from './components/auth/Login';
-export { Signup } from './components/auth/Signup';
-export { SignupBanner } from './components/auth/SignupBanner';
-export { EmailConfirmation } from './components/auth/EmailConfirmation';
-export { PostSignup } from './components/auth/PostSignup';
-
-// Onboarding Components
-export { Welcome } from './components/onboarding/Welcome';
-export { Location } from './components/onboarding/Location';
-export { Preferences } from './components/onboarding/Preferences';
-
-// Hooks
-export { useAuth } from './hooks/useAuth';
-export { useGeolocation, useNearbyRestaurants } from './hooks/useGeolocation';
-
-// Lib
-export { supabase } from './lib/supabase';
-
-// Data
-export { mockRestaurants, filterChips } from './data/mockData';
-
-// Utils
-export { getGreeting, getContextualMessage } from './utils/helpers';
+export type TabId = 'home' | 'discover' | 'newreview' | 'activity' | 'profile';
