@@ -15,7 +15,6 @@ interface PreferencesProps {
 }
 
 type Step = 'company' | 'mood' | 'restrictions' | 'budget';
-
 const steps: Step[] = ['company', 'mood', 'restrictions', 'budget'];
 
 const stepTitles: Record<Step, string> = {
@@ -54,15 +53,9 @@ const budgetOptions = [
   { id: 'varies', label: 'Depende da ocasião', subtitle: '', icon: '🎲' },
 ];
 
-export const Preferences: React.FC<PreferencesProps> = ({
-  onComplete,
-  onSaveToSupabase,
-  saving,
-}) => {
+export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSupabase, saving }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  
-  // Estado local de todas as preferências
   const [preferences, setPreferences] = useState<UserPreferences>({
     company: [],
     mood: [],
@@ -75,15 +68,10 @@ export const Preferences: React.FC<PreferencesProps> = ({
   const toggleSelection = (field: 'company' | 'mood' | 'restrictions', value: string) => {
     setPreferences(prev => {
       const current = prev[field];
-      if (current.includes(value)) {
-        return { ...prev, [field]: current.filter(v => v !== value) };
-      }
-      return { ...prev, [field]: [...current, value] };
+      return current.includes(value)
+        ? { ...prev, [field]: current.filter(v => v !== value) }
+        : { ...prev, [field]: [...current, value] };
     });
-  };
-
-  const selectBudget = (value: string) => {
-    setPreferences(prev => ({ ...prev, budget: value }));
   };
 
   const canProceed = () => {
@@ -100,103 +88,52 @@ export const Preferences: React.FC<PreferencesProps> = ({
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Último passo - salvar tudo no Supabase
       setIsSaving(true);
-      console.log('Salvando todas as preferências:', preferences);
-      
       try {
         const result = await onSaveToSupabase(preferences);
-        console.log('Resultado do save:', result);
-        
-        if (result.success) {
-          onComplete(preferences);
-        }
-      } catch (error) {
-        console.error('Erro ao salvar preferências:', error);
+        if (result.success) onComplete(preferences);
       } finally {
         setIsSaving(false);
       }
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-
   const isLoading = saving || isSaving;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: 'var(--color-cream)',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div className="min-h-screen bg-cream flex flex-col">
       {/* Header */}
-      <div style={{
-        padding: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
+      <div className="p-4 flex items-center justify-between">
         <button
-          onClick={handleBack}
+          onClick={() => currentStep > 0 && setCurrentStep(prev => prev - 1)}
           disabled={currentStep === 0}
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            border: 'none',
-            backgroundColor: currentStep === 0 ? 'transparent' : 'rgba(0,0,0,0.05)',
-            cursor: currentStep === 0 ? 'default' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: currentStep === 0 ? 0 : 1,
-          }}
+          className={`w-10 h-10 rounded-full border-none flex items-center justify-center ${
+            currentStep === 0 ? 'opacity-0 cursor-default' : 'bg-black/5 cursor-pointer'
+          }`}
         >
-          <ChevronLeft size={24} color="var(--color-dark)" />
+          <ChevronLeft size={24} className="text-dark" />
         </button>
 
-        {/* Progress dots */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex gap-2">
           {steps.map((_, i) => (
             <div
               key={i}
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: i <= currentStep ? 'var(--color-red)' : 'rgba(0,0,0,0.1)',
-                transition: 'background-color 0.3s ease',
-              }}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                i <= currentStep ? 'bg-red' : 'bg-black/10'
+              }`}
             />
           ))}
         </div>
 
-        <div style={{ width: '40px' }} />
+        <div className="w-10" />
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: '0 24px', paddingBottom: '120px' }}>
-        <h1 style={{
-          fontSize: '1.8rem',
-          fontWeight: 700,
-          fontFamily: 'var(--font-display)',
-          color: 'var(--color-dark)',
-          marginBottom: '8px',
-          textAlign: 'center',
-        }}>
+      <div className="flex-1 px-6 pb-[120px]">
+        <h1 className="text-3xl font-bold font-display text-dark mb-2 text-center">
           {stepTitles[step]}
         </h1>
-        <p style={{
-          fontSize: '0.9rem',
-          color: 'var(--color-gray)',
-          textAlign: 'center',
-          marginBottom: '32px',
-        }}>
+        <p className="text-sm text-gray text-center mb-8">
           {step === 'company' && 'Selecione uma ou mais opções'}
           {step === 'mood' && 'Escolha os ambientes que mais combinam com você'}
           {step === 'restrictions' && 'Selecione se houver alguma'}
@@ -205,50 +142,24 @@ export const Preferences: React.FC<PreferencesProps> = ({
 
         {/* Company Step */}
         {step === 'company' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          <div className="grid grid-cols-2 gap-3">
             {companyOptions.map(option => {
               const isSelected = preferences.company.includes(option.id);
               return (
                 <button
                   key={option.id}
                   onClick={() => toggleSelection('company', option.id)}
-                  style={{
-                    position: 'relative',
-                    padding: '20px',
-                    borderRadius: '16px',
-                    border: isSelected ? '2px solid var(--color-red)' : '2px solid transparent',
-                    backgroundColor: isSelected ? 'rgba(255, 59, 48, 0.1)' : '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={`relative p-5 rounded-2xl border-2 cursor-pointer flex flex-col items-center gap-2 shadow-sm transition-all ${
+                    isSelected ? 'border-red bg-red/10' : 'border-transparent bg-white'
+                  }`}
                 >
-                  <span style={{ fontSize: '2rem' }}>{option.icon}</span>
-                  <span style={{
-                    fontSize: '0.9rem',
-                    fontWeight: isSelected ? 600 : 400,
-                    color: isSelected ? 'var(--color-red)' : 'var(--color-dark)',
-                  }}>
+                  <span className="text-3xl">{option.icon}</span>
+                  <span className={`text-sm ${isSelected ? 'font-semibold text-red' : 'text-dark'}`}>
                     {option.label}
                   </span>
                   {isSelected && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--color-red)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <Check size={12} color="#fff" />
+                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red flex items-center justify-center">
+                      <Check size={12} className="text-white" />
                     </div>
                   )}
                 </button>
@@ -259,63 +170,24 @@ export const Preferences: React.FC<PreferencesProps> = ({
 
         {/* Mood Step */}
         {step === 'mood' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+          <div className="grid grid-cols-2 gap-3">
             {moodOptions.map(option => {
               const isSelected = preferences.mood.includes(option.id);
               return (
                 <button
                   key={option.id}
                   onClick={() => toggleSelection('mood', option.id)}
-                  style={{
-                    position: 'relative',
-                    height: '140px',
-                    borderRadius: '16px',
-                    border: isSelected ? '3px solid var(--color-red)' : '3px solid transparent',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    padding: 0,
-                    background: 'none',
-                  }}
+                  className={`relative h-[140px] rounded-2xl overflow-hidden cursor-pointer p-0 bg-transparent border-[3px] ${
+                    isSelected ? 'border-red' : 'border-transparent'
+                  }`}
                 >
-                  <img
-                    src={option.image}
-                    alt={option.label}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    padding: '12px',
-                  }}>
-                    <span style={{
-                      color: '#fff',
-                      fontWeight: 600,
-                      fontSize: '0.95rem',
-                    }}>
-                      {option.label}
-                    </span>
+                  <img src={option.image} alt={option.label} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
+                    <span className="text-white font-semibold text-[0.95rem]">{option.label}</span>
                   </div>
                   {isSelected && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--color-red)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <Check size={14} color="#fff" />
+                    <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red flex items-center justify-center">
+                      <Check size={14} className="text-white" />
                     </div>
                   )}
                 </button>
@@ -326,37 +198,22 @@ export const Preferences: React.FC<PreferencesProps> = ({
 
         {/* Restrictions Step */}
         {step === 'restrictions' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             {restrictionOptions.map(option => {
               const isSelected = preferences.restrictions.includes(option.id);
               return (
                 <button
                   key={option.id}
                   onClick={() => toggleSelection('restrictions', option.id)}
-                  style={{
-                    padding: '16px 20px',
-                    borderRadius: '12px',
-                    border: isSelected ? '2px solid var(--color-red)' : '2px solid transparent',
-                    backgroundColor: isSelected ? 'rgba(255, 59, 48, 0.1)' : '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={`p-4 px-5 rounded-xl border-2 cursor-pointer flex items-center gap-3 shadow-sm transition-all ${
+                    isSelected ? 'border-red bg-red/10' : 'border-transparent bg-white'
+                  }`}
                 >
-                  <span style={{ fontSize: '1.5rem' }}>{option.icon}</span>
-                  <span style={{
-                    flex: 1,
-                    textAlign: 'left',
-                    fontSize: '1rem',
-                    fontWeight: isSelected ? 600 : 400,
-                    color: isSelected ? 'var(--color-red)' : 'var(--color-dark)',
-                  }}>
+                  <span className="text-2xl">{option.icon}</span>
+                  <span className={`flex-1 text-left text-base ${isSelected ? 'font-semibold text-red' : 'text-dark'}`}>
                     {option.label}
                   </span>
-                  {isSelected && <Check size={20} color="var(--color-red)" />}
+                  {isSelected && <Check size={20} className="text-red" />}
                 </button>
               );
             })}
@@ -365,43 +222,25 @@ export const Preferences: React.FC<PreferencesProps> = ({
 
         {/* Budget Step */}
         {step === 'budget' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             {budgetOptions.map(option => {
               const isSelected = preferences.budget === option.id;
               return (
                 <button
                   key={option.id}
-                  onClick={() => selectBudget(option.id)}
-                  style={{
-                    padding: '20px',
-                    borderRadius: '12px',
-                    border: isSelected ? '2px solid var(--color-red)' : '2px solid transparent',
-                    backgroundColor: isSelected ? 'rgba(255, 59, 48, 0.1)' : '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease',
-                  }}
+                  onClick={() => setPreferences(prev => ({ ...prev, budget: option.id }))}
+                  className={`p-5 rounded-xl border-2 cursor-pointer flex items-center gap-4 shadow-sm transition-all ${
+                    isSelected ? 'border-red bg-red/10' : 'border-transparent bg-white'
+                  }`}
                 >
-                  <span style={{ fontSize: '1.5rem' }}>{option.icon}</span>
-                  <div style={{ flex: 1, textAlign: 'left' }}>
-                    <p style={{
-                      fontSize: '1rem',
-                      fontWeight: isSelected ? 600 : 500,
-                      color: isSelected ? 'var(--color-red)' : 'var(--color-dark)',
-                      marginBottom: option.subtitle ? '2px' : 0,
-                    }}>
+                  <span className="text-2xl">{option.icon}</span>
+                  <div className="flex-1 text-left">
+                    <p className={`text-base ${isSelected ? 'font-semibold text-red' : 'font-medium text-dark'}`}>
                       {option.label}
                     </p>
-                    {option.subtitle && (
-                      <p style={{ fontSize: '0.8rem', color: 'var(--color-gray)' }}>
-                        {option.subtitle}
-                      </p>
-                    )}
+                    {option.subtitle && <p className="text-xs text-gray">{option.subtitle}</p>}
                   </div>
-                  {isSelected && <Check size={20} color="var(--color-red)" />}
+                  {isSelected && <Check size={20} className="text-red" />}
                 </button>
               );
             })}
@@ -410,39 +249,19 @@ export const Preferences: React.FC<PreferencesProps> = ({
       </div>
 
       {/* Bottom Button */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: '16px 24px 32px',
-        backgroundColor: 'var(--color-cream)',
-        borderTop: '1px solid rgba(0,0,0,0.05)',
-      }}>
+      <div className="fixed bottom-0 left-0 right-0 p-6 pb-8 bg-cream border-t border-black/5">
         <button
           onClick={handleNext}
           disabled={!canProceed() || isLoading}
-          style={{
-            width: '100%',
-            padding: '16px',
-            borderRadius: '14px',
-            border: 'none',
-            backgroundColor: canProceed() ? 'var(--color-red)' : 'rgba(0,0,0,0.1)',
-            color: canProceed() ? '#fff' : 'var(--color-gray)',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: canProceed() && !isLoading ? 'pointer' : 'not-allowed',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: canProceed() ? '0 4px 15px rgba(255, 59, 48, 0.3)' : 'none',
-            transition: 'all 0.2s ease',
-          }}
+          className={`w-full p-4 rounded-[14px] border-none text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all ${
+            canProceed()
+              ? 'bg-red text-white shadow-[0_4px_15px_rgba(255,59,48,0.3)]'
+              : 'bg-black/10 text-gray cursor-not-allowed'
+          }`}
         >
           {isLoading ? (
             <>
-              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={20} className="animate-spin" />
               Salvando...
             </>
           ) : (
@@ -453,13 +272,6 @@ export const Preferences: React.FC<PreferencesProps> = ({
           )}
         </button>
       </div>
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

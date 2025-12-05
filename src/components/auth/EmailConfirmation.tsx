@@ -8,109 +8,38 @@ interface EmailConfirmationProps {
 
 export const EmailConfirmation: React.FC<EmailConfirmationProps> = ({ email, onConfirm }) => {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-cream)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        textAlign: 'center',
-      }}
-    >
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
       {/* Ícone */}
-      <div
-        style={{
-          width: '120px',
-          height: '120px',
-          backgroundColor: 'rgba(52, 199, 89, 0.1)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '32px',
-          position: 'relative',
-        }}
-      >
-        <Mail size={56} color="#34C759" strokeWidth={1.5} />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            backgroundColor: '#34C759',
-            borderRadius: '50%',
-            padding: '4px',
-          }}
-        >
-          <CheckCircle size={24} color="#fff" />
+      <div className="w-[120px] h-[120px] bg-green-500/10 rounded-full flex items-center justify-center mb-8 relative">
+        <Mail size={56} className="text-green-500" strokeWidth={1.5} />
+        <div className="absolute bottom-2 right-2 bg-green-500 rounded-full p-1">
+          <CheckCircle size={24} className="text-white" />
         </div>
       </div>
 
       {/* Título */}
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontFamily: 'var(--font-display)',
-          fontWeight: 700,
-          color: 'var(--color-dark)',
-          marginBottom: '12px',
-        }}
-      >
+      <h1 className="text-2xl font-display font-bold text-dark mb-3">
         Verifique seu e-mail
       </h1>
 
       {/* Descrição */}
-      <p
-        style={{
-          fontSize: '1rem',
-          color: 'var(--color-gray)',
-          marginBottom: '8px',
-          maxWidth: '300px',
-          lineHeight: 1.5,
-        }}
-      >
+      <p className="text-base text-gray mb-2 max-w-[300px] leading-relaxed">
         Enviamos um link de confirmação para:
       </p>
 
       {/* Email */}
-      <p
-        style={{
-          fontSize: '1rem',
-          fontWeight: 600,
-          color: 'var(--color-dark)',
-          marginBottom: '24px',
-        }}
-      >
+      <p className="text-base font-semibold text-dark mb-6">
         {email}
       </p>
 
       {/* Instrução */}
-      <p
-        style={{
-          fontSize: '0.9rem',
-          color: 'var(--color-gray)',
-          marginBottom: '40px',
-          maxWidth: '280px',
-          lineHeight: 1.5,
-        }}
-      >
+      <p className="text-sm text-gray mb-10 max-w-[280px] leading-relaxed">
         Clique no link do e-mail para ativar sua conta. Depois, volte aqui para entrar.
       </p>
 
       {/* Dica */}
-      <div
-        style={{
-          backgroundColor: 'rgba(255, 149, 0, 0.1)',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: '32px',
-          maxWidth: '300px',
-        }}
-      >
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-orange)' }}>
+      <div className="bg-orange/10 py-3 px-4 rounded-md mb-8 max-w-[300px]">
+        <p className="text-sm text-orange">
           💡 Não encontrou? Verifique a pasta de spam.
         </p>
       </div>
@@ -118,19 +47,7 @@ export const EmailConfirmation: React.FC<EmailConfirmationProps> = ({ email, onC
       {/* Botão */}
       <button
         onClick={onConfirm}
-        style={{
-          width: '100%',
-          maxWidth: '320px',
-          padding: '16px 24px',
-          backgroundColor: 'var(--color-red)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 'var(--radius-md)',
-          fontSize: '1rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)',
-        }}
+        className="w-full max-w-[320px] py-4 px-6 bg-red text-white border-none rounded-md text-base font-semibold cursor-pointer shadow-[0_4px_15px_rgba(255,59,48,0.3)]"
       >
         Entendido
       </button>

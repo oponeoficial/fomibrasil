@@ -15,101 +15,39 @@ export const Header: React.FC<HeaderProps> = ({
   hasNotifications = false,
 }) => {
   return (
-    <header
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 'var(--header-height)',
-        backgroundColor: 'rgba(255, 248, 240, 0.95)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(0,0,0,0.05)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 16px',
-        zIndex: 50,
-      }}
-    >
+    <header className="fixed top-0 left-0 right-0 h-[60px] bg-cream/95 backdrop-blur-md border-b border-black/5 flex items-center justify-between px-4 z-50">
       {/* Menu Button */}
       <button
         onClick={onMenuClick}
-        style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          border: 'none',
-          backgroundColor: 'transparent',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className="w-10 h-10 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center"
       >
-        <Menu size={24} color="var(--color-dark)" />
+        <Menu size={24} className="text-dark" />
       </button>
 
       {/* Logo */}
       <img
         src="/images/logo-fomi.png"
         alt="Fomí"
-        style={{
-          height: '60px',
-          objectFit: 'contain',
-        }}
+        className="h-[60px] object-contain"
       />
 
       {/* Right Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div className="flex items-center gap-1">
         <button
           onClick={onNotificationsClick}
-          style={{
-            position: 'relative',
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            border: 'none',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="relative w-10 h-10 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center"
         >
-          <Bell size={22} color="var(--color-dark)" />
+          <Bell size={22} className="text-dark" />
           {hasNotifications && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-                width: '8px',
-                height: '8px',
-                backgroundColor: 'var(--color-red)',
-                borderRadius: '50%',
-                border: '2px solid var(--color-cream)',
-              }}
-            />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red rounded-full border-2 border-cream" />
           )}
         </button>
 
         <button
           onClick={onFilterClick}
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            border: 'none',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-10 h-10 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center"
         >
-          <SlidersHorizontal size={22} color="var(--color-dark)" />
+          <SlidersHorizontal size={22} className="text-dark" />
         </button>
       </div>
     </header>

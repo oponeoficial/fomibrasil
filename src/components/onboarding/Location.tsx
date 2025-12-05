@@ -15,34 +15,25 @@ type LocationStatus = 'idle' | 'requesting' | 'success' | 'denied' | 'error';
 
 export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, saving }) => {
   const [status, setStatus] = useState<LocationStatus>('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualCity, setManualCity] = useState('');
 
   const requestLocation = () => {
-    console.log('Botão clicado - iniciando geolocalização...');
     setStatus('requesting');
     setErrorMessage('');
 
     if (!navigator.geolocation) {
-      console.log('Geolocalização não suportada');
       setStatus('error');
       setErrorMessage('Seu navegador não suporta geolocalização.');
       return;
     }
 
-    console.log('Chamando navigator.geolocation.getCurrentPosition...');
-    
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log('Posição obtida:', position.coords);
         const { latitude, longitude } = position.coords;
-
         try {
-          console.log('Salvando localização no Supabase...');
           const result = await onSaveLocation(latitude, longitude);
-          console.log('Resultado do save:', result);
-
           if (result.success) {
             setStatus('success');
             setTimeout(() => onComplete(), 800);
@@ -50,47 +41,33 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
             setStatus('error');
             setErrorMessage(result.error || 'Erro ao salvar localização.');
           }
-        } catch (err) {
-          console.error('Erro ao salvar:', err);
+        } catch {
           setStatus('error');
           setErrorMessage('Erro ao salvar localização.');
         }
       },
       (error) => {
-        console.error('Erro de geolocalização:', error);
         switch (error.code) {
           case error.PERMISSION_DENIED:
             setStatus('denied');
             setErrorMessage('Permissão negada. Insira sua cidade manualmente.');
-            setShowManualInput(true);
             break;
           case error.POSITION_UNAVAILABLE:
             setStatus('error');
             setErrorMessage('Localização indisponível. Insira manualmente.');
-            setShowManualInput(true);
-            break;
-          case error.TIMEOUT:
-            setStatus('error');
-            setErrorMessage('Tempo esgotado. Insira manualmente.');
-            setShowManualInput(true);
             break;
           default:
             setStatus('error');
             setErrorMessage('Erro ao obter localização.');
-            setShowManualInput(true);
         }
+        setShowManualInput(true);
       },
-      {
-        enableHighAccuracy: false,
-        timeout: 15000,
-        maximumAge: 300000,
-      }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
     );
   };
 
   const handleManualSubmit = async () => {
     if (!manualCity.trim()) return;
-
     setStatus('requesting');
 
     const cityCoordinates: Record<string, { lat: number; lng: number }> = {
@@ -99,11 +76,6 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
       'belo horizonte': { lat: -19.9167, lng: -43.9345 },
       'recife': { lat: -8.0476, lng: -34.8770 },
       'salvador': { lat: -12.9714, lng: -38.5014 },
-      'fortaleza': { lat: -3.7172, lng: -38.5433 },
-      'brasília': { lat: -15.7801, lng: -47.9292 },
-      'curitiba': { lat: -25.4284, lng: -49.2733 },
-      'porto alegre': { lat: -30.0346, lng: -51.2177 },
-      'manaus': { lat: -3.1190, lng: -60.0217 },
     };
 
     const cityKey = manualCity.toLowerCase().trim();
@@ -111,7 +83,6 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
 
     try {
       const result = await onSaveLocation(coords.lat, coords.lng, { city: manualCity });
-
       if (result.success) {
         setStatus('success');
         setTimeout(() => onComplete(), 800);
@@ -119,7 +90,7 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
         setStatus('error');
         setErrorMessage(result.error || 'Erro ao salvar.');
       }
-    } catch (err) {
+    } catch {
       setStatus('error');
       setErrorMessage('Erro ao salvar localização.');
     }
@@ -128,70 +99,29 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
   const isLoading = status === 'requesting' || saving;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-cream)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        textAlign: 'center',
-      }}
-    >
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
       {/* Ícone */}
-      <div
-        style={{
-          width: '120px',
-          height: '120px',
-          borderRadius: '50%',
-          backgroundColor: status === 'success' ? 'rgba(52, 199, 89, 0.15)' : 'rgba(255, 59, 48, 0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '32px',
-        }}
-      >
+      <div className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-8 ${
+        status === 'success' ? 'bg-green-500/15' : 'bg-red/10'
+      }`}>
         {isLoading ? (
-          <Loader2 size={48} color="var(--color-red)" className="spin" />
+          <Loader2 size={48} className="text-red animate-spin" />
         ) : status === 'success' ? (
-          <Navigation size={48} color="#34C759" />
+          <Navigation size={48} className="text-green-500" />
         ) : status === 'denied' || status === 'error' ? (
-          <AlertCircle size={48} color="var(--color-red)" />
+          <AlertCircle size={48} className="text-red" />
         ) : (
-          <MapPin size={48} color="var(--color-red)" />
+          <MapPin size={48} className="text-red" />
         )}
       </div>
 
-      <style>{`
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
-
       {/* Título */}
-      <h1
-        style={{
-          fontSize: '1.8rem',
-          fontWeight: 700,
-          fontFamily: 'var(--font-display)',
-          color: 'var(--color-dark)',
-          marginBottom: '12px',
-        }}
-      >
+      <h1 className="text-3xl font-bold font-display text-dark mb-3">
         {status === 'success' ? 'Localização salva!' : 'Onde você está?'}
       </h1>
 
       {/* Descrição */}
-      <p
-        style={{
-          fontSize: '1rem',
-          color: 'var(--color-gray)',
-          maxWidth: '280px',
-          marginBottom: '32px',
-          lineHeight: 1.5,
-        }}
-      >
+      <p className="text-base text-gray max-w-[280px] mb-8 leading-relaxed">
         {status === 'success'
           ? 'Vamos encontrar os melhores restaurantes perto de você.'
           : 'Para te mostrar as melhores opções perto de você...'}
@@ -199,63 +129,32 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
 
       {/* Erro */}
       {errorMessage && (
-        <div
-          style={{
-            backgroundColor: 'rgba(255, 59, 48, 0.1)',
-            color: 'var(--color-red)',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            fontSize: '0.9rem',
-            marginBottom: '24px',
-            maxWidth: '300px',
-          }}
-        >
+        <div className="bg-red/10 text-red px-4 py-3 rounded-xl text-sm mb-6 max-w-[300px]">
           {errorMessage}
         </div>
       )}
 
       {/* Input manual */}
       {showManualInput ? (
-        <div style={{ width: '100%', maxWidth: '320px' }}>
+        <div className="w-full max-w-[320px]">
           <input
             type="text"
             placeholder="Digite sua cidade..."
             value={manualCity}
             onChange={(e) => setManualCity(e.target.value)}
             disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '16px',
-              borderRadius: '12px',
-              border: '1px solid rgba(0,0,0,0.1)',
-              fontSize: '1rem',
-              marginBottom: '12px',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
+            className="w-full p-4 rounded-xl border border-black/10 text-base mb-3 outline-none"
           />
           <button
             onClick={handleManualSubmit}
             disabled={isLoading || !manualCity.trim()}
-            style={{
-              width: '100%',
-              padding: '16px',
-              backgroundColor: manualCity.trim() ? 'var(--color-red)' : '#ccc',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: manualCity.trim() && !isLoading ? 'pointer' : 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
+            className={`w-full p-4 rounded-xl border-none text-base font-semibold cursor-pointer flex items-center justify-center gap-2 ${
+              manualCity.trim() ? 'bg-red text-white' : 'bg-gray/30 text-gray cursor-not-allowed'
+            }`}
           >
             {isLoading ? (
               <>
-                <Loader2 size={20} className="spin" />
+                <Loader2 size={20} className="animate-spin" />
                 Salvando...
               </>
             ) : (
@@ -267,30 +166,15 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
           </button>
         </div>
       ) : status !== 'success' ? (
-        <div style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="w-full max-w-[320px] flex flex-col gap-3">
           <button
             onClick={requestLocation}
             disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '16px 24px',
-              backgroundColor: 'var(--color-red)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
+            className="w-full py-4 px-6 bg-red text-white border-none rounded-xl text-base font-semibold cursor-pointer shadow-[0_4px_15px_rgba(255,59,48,0.3)] flex items-center justify-center gap-2 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
-                <Loader2 size={20} className="spin" />
+                <Loader2 size={20} className="animate-spin" />
                 Obtendo localização...
               </>
             ) : (
@@ -304,33 +188,17 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
           <button
             onClick={() => setShowManualInput(true)}
             disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '14px',
-              backgroundColor: 'transparent',
-              color: 'var(--color-gray)',
-              border: 'none',
-              fontSize: '0.95rem',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
+            className="w-full py-3.5 bg-transparent text-gray border-none text-[0.95rem] cursor-pointer underline"
           >
             Inserir cidade manualmente
           </button>
         </div>
       ) : null}
 
-      {/* Indicador de progresso */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '48px',
-          display: 'flex',
-          gap: '8px',
-        }}
-      >
-        <div style={{ width: '24px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--color-red)' }} />
-        <div style={{ width: '24px', height: '4px', borderRadius: '2px', backgroundColor: 'rgba(0,0,0,0.1)' }} />
+      {/* Progress dots */}
+      <div className="absolute bottom-12 flex gap-2">
+        <div className="w-6 h-1 rounded-sm bg-red" />
+        <div className="w-6 h-1 rounded-sm bg-black/10" />
       </div>
     </div>
   );

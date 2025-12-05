@@ -32,89 +32,41 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 'var(--header-height)',
-        left: 0,
-        right: 0,
-        zIndex: 40,
-        backgroundColor: 'rgba(255, 248, 240, 0.98)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: isExpanded ? 'var(--shadow-card)' : 'none',
-        maxHeight: isExpanded ? '300px' : '0',
-        overflow: 'hidden',
-        transition: 'max-height 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-      }}
+      className={`fixed top-[60px] left-0 right-0 z-40 bg-cream/98 backdrop-blur-md transition-all duration-300 ease-in-out overflow-hidden ${
+        isExpanded ? 'max-h-[300px] shadow-card' : 'max-h-0'
+      }`}
     >
-      <div style={{ padding: '16px' }}>
+      <div className="p-4">
         {/* Search Bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            backgroundColor: '#fff',
-            borderRadius: 'var(--radius-full)',
-            padding: '12px 16px',
-            boxShadow: 'var(--shadow-soft)',
-            marginBottom: '16px',
-          }}
-        >
-          <Search size={20} color="var(--color-gray)" />
+        <div className="flex items-center gap-3 bg-white rounded-full px-4 py-3 shadow-soft mb-4">
+          <Search size={20} className="text-gray" />
           <input
             type="text"
             placeholder="Buscar restaurantes, pratos ou bairros..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              fontSize: '0.9rem',
-              backgroundColor: 'transparent',
-              color: 'var(--color-dark)',
-            }}
+            className="flex-1 border-none outline-none text-sm bg-transparent text-dark placeholder:text-gray"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange('')} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-              <X size={18} color="var(--color-gray)" />
+            <button onClick={() => onSearchChange('')} className="bg-transparent border-none cursor-pointer p-0">
+              <X size={18} className="text-gray" />
             </button>
           )}
         </div>
 
         {/* Filter Chips */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            paddingBottom: '8px',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {filterChips.map((chip) => {
             const isSelected = selectedFilters.includes(chip.id);
             return (
               <button
                 key={chip.id}
                 onClick={() => onFilterChange(chip.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  border: isSelected ? '2px solid var(--color-red)' : '1px solid #e0e0e0',
-                  backgroundColor: isSelected ? 'rgba(255, 59, 48, 0.1)' : '#fff',
-                  color: isSelected ? 'var(--color-red)' : 'var(--color-dark)',
-                  fontSize: '0.85rem',
-                  fontWeight: isSelected ? 600 : 400,
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap cursor-pointer transition-all duration-200 ${
+                  isSelected
+                    ? 'border-2 border-red bg-red/10 text-red font-semibold'
+                    : 'border border-gray/30 bg-white text-dark font-normal'
+                }`}
               >
                 <span>{chip.icon}</span>
                 <span>{chip.label}</span>
@@ -124,19 +76,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
 
         {/* Close hint */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+        <div className="flex justify-center mt-2">
           <button
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              color: 'var(--color-gray)',
-              fontSize: '0.75rem',
-            }}
+            className="bg-transparent border-none cursor-pointer flex items-center gap-1 text-gray text-xs"
           >
             <ChevronDown size={16} />
             <span>Fechar filtros</span>

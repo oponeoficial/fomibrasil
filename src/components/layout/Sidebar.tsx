@@ -41,70 +41,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userName, use
       {/* Overlay */}
       <div
         onClick={onClose}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          zIndex: 90,
-          opacity: isOpen ? 1 : 0,
-          pointerEvents: isOpen ? 'auto' : 'none',
-          transition: 'opacity 0.3s ease',
-        }}
+        className={`fixed inset-0 bg-black/40 z-[90] transition-opacity duration-300 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
       />
 
       {/* Drawer */}
       <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: '280px',
-          maxWidth: '80vw',
-          backgroundColor: 'var(--color-cream)',
-          zIndex: 100,
-          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isOpen ? 'var(--shadow-card)' : 'none',
-          display: 'flex',
-          flexDirection: 'column',
-          overflowY: 'auto',
-        }}
+        className={`fixed top-0 left-0 bottom-0 w-[280px] max-w-[80vw] bg-cream z-[100] transition-transform duration-300 ease-out flex flex-col overflow-y-auto ${
+          isOpen ? 'translate-x-0 shadow-card' : '-translate-x-full shadow-none'
+        }`}
       >
         {/* Header */}
-        <div style={{ padding: '20px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="p-5 border-b border-black/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-red)',
-                backgroundImage: userImage ? `url(${userImage})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '1.2rem',
-              }}
+              className="w-12 h-12 rounded-full bg-red bg-cover bg-center flex items-center justify-center text-white font-bold text-xl"
+              style={userImage ? { backgroundImage: `url(${userImage})` } : {}}
             >
               {!userImage && userName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--color-dark)' }}>{userName}</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--color-gray)' }}>Ver perfil</p>
+              <p className="font-semibold text-base text-dark">{userName}</p>
+              <p className="text-xs text-gray">Ver perfil</p>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-            <X size={24} color="var(--color-dark)" />
+          <button onClick={onClose} className="bg-transparent border-none cursor-pointer p-2">
+            <X size={24} className="text-dark" />
           </button>
         </div>
 
         {/* Menu Sections */}
-        <div style={{ flex: 1, padding: '16px 0' }}>
+        <div className="flex-1 py-4">
           <SectionTitle>Principal</SectionTitle>
           {mainItems.map(item => (
             <MenuItemButton key={item.id} item={item} onClick={() => { onNavigate(item.id); onClose(); }} />
@@ -122,9 +90,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userName, use
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '16px', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
-          <img src="/images/logo-fomi.png" alt="Fomí" style={{ height: '24px', marginBottom: '8px' }} />
-          <p style={{ fontSize: '0.7rem', color: 'var(--color-gray)' }}>© 2025 Fomí. Todos os direitos reservados.</p>
+        <div className="p-4 border-t border-black/5 text-center">
+          <img src="/images/logo-fomi.png" alt="Fomí" className="h-6 mb-2" />
+          <p className="text-[0.7rem] text-gray">© 2025 Fomí. Todos os direitos reservados.</p>
         </div>
       </div>
     </>
@@ -132,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userName, use
 };
 
 const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-gray)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '16px 20px 8px' }}>
+  <p className="text-[0.7rem] font-semibold text-gray uppercase tracking-wide px-5 pt-4 pb-2">
     {children}
   </p>
 );
@@ -140,22 +108,11 @@ const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const MenuItemButton: React.FC<{ item: MenuItem; onClick: () => void; isDestructive?: boolean }> = ({ item, onClick, isDestructive }) => (
   <button
     onClick={onClick}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      width: '100%',
-      padding: '12px 20px',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      textAlign: 'left',
-      color: isDestructive ? 'var(--color-red)' : 'var(--color-dark)',
-      fontSize: '0.95rem',
-      transition: 'background-color 0.2s ease',
-    }}
+    className={`flex items-center gap-3.5 w-full px-5 py-3 bg-transparent border-none cursor-pointer text-left text-[0.95rem] transition-colors duration-200 hover:bg-black/5 ${
+      isDestructive ? 'text-red' : 'text-dark'
+    }`}
   >
-    <span style={{ color: isDestructive ? 'var(--color-red)' : 'var(--color-gray)' }}>{item.icon}</span>
+    <span className={isDestructive ? 'text-red' : 'text-gray'}>{item.icon}</span>
     <span>{item.label}</span>
   </button>
 );

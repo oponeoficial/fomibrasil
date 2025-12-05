@@ -10,31 +10,22 @@ type Step = 'friends' | 'notifications';
 export const PostSignup: React.FC<PostSignupProps> = ({ onComplete }) => {
   const [step, setStep] = useState<Step>('friends');
 
-  const handleFriendsConnect = () => {
-    // TODO: Implementar conexão com contatos/redes sociais
-    setStep('notifications');
-  };
-
-  const handleFriendsSkip = () => {
-    setStep('notifications');
-  };
+  const handleFriendsConnect = () => setStep('notifications');
+  const handleFriendsSkip = () => setStep('notifications');
 
   const handleNotificationsAllow = async () => {
     if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      console.log('Notification permission:', permission);
+      await Notification.requestPermission();
     }
     onComplete();
   };
 
-  const handleNotificationsSkip = () => {
-    onComplete();
-  };
+  const handleNotificationsSkip = () => onComplete();
 
   if (step === 'friends') {
     return (
       <PermissionScreen
-        icon={<Users size={64} color="var(--color-red)" strokeWidth={1.5} />}
+        icon={<Users size={64} className="text-red" strokeWidth={1.5} />}
         title="Conectar seus amigos?"
         description="Descubra os lugares que seus amigos amam e compartilhe suas descobertas."
         primaryLabel="Conectar"
@@ -47,7 +38,7 @@ export const PostSignup: React.FC<PostSignupProps> = ({ onComplete }) => {
 
   return (
     <PermissionScreen
-      icon={<Bell size={64} color="var(--color-red)" strokeWidth={1.5} />}
+      icon={<Bell size={64} className="text-red" strokeWidth={1.5} />}
       title="Permitir notificações?"
       description="Te avisamos sobre novidades nos seus restaurantes salvos e recomendações personalizadas."
       primaryLabel="Permitir"
@@ -69,102 +60,37 @@ interface PermissionScreenProps {
 }
 
 const PermissionScreen: React.FC<PermissionScreenProps> = ({
-  icon,
-  title,
-  description,
-  primaryLabel,
-  secondaryLabel,
-  onPrimary,
-  onSecondary,
+  icon, title, description, primaryLabel, secondaryLabel, onPrimary, onSecondary,
 }) => {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-cream)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        textAlign: 'center',
-      }}
-    >
+    <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
       {/* Icon */}
-      <div
-        style={{
-          width: '140px',
-          height: '140px',
-          backgroundColor: 'rgba(255, 59, 48, 0.1)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '32px',
-        }}
-      >
+      <div className="w-[140px] h-[140px] bg-red/10 rounded-full flex items-center justify-center mb-8">
         {icon}
       </div>
 
       {/* Title */}
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontFamily: 'var(--font-display)',
-          fontWeight: 700,
-          color: 'var(--color-dark)',
-          marginBottom: '12px',
-        }}
-      >
+      <h1 className="text-2xl font-display font-bold text-dark mb-3">
         {title}
       </h1>
 
       {/* Description */}
-      <p
-        style={{
-          fontSize: '1rem',
-          color: 'var(--color-gray)',
-          marginBottom: '48px',
-          maxWidth: '280px',
-          lineHeight: 1.5,
-        }}
-      >
+      <p className="text-base text-gray mb-12 max-w-[280px] leading-relaxed">
         {description}
       </p>
 
       {/* Buttons */}
-      <div style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="w-full max-w-[320px] flex flex-col gap-3">
         <button
           onClick={onPrimary}
-          style={{
-            width: '100%',
-            padding: '16px 24px',
-            backgroundColor: 'var(--color-red)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)',
-          }}
+          className="w-full py-4 px-6 bg-red text-white border-none rounded-md text-base font-semibold cursor-pointer shadow-[0_4px_15px_rgba(255,59,48,0.3)]"
         >
           {primaryLabel}
         </button>
 
         <button
           onClick={onSecondary}
-          style={{
-            width: '100%',
-            padding: '16px 24px',
-            backgroundColor: 'transparent',
-            color: 'var(--color-gray)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '1rem',
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
+          className="w-full py-4 px-6 bg-transparent text-gray border-none rounded-md text-base font-medium cursor-pointer"
         >
           {secondaryLabel}
         </button>

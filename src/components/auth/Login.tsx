@@ -20,25 +20,15 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => 
     setError(null);
     setLoading(true);
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
     if (authError) {
-      if (authError.message.includes('Invalid login')) {
-        setError('E-mail ou senha incorretos');
-      } else {
-        setError('Erro ao entrar. Tente novamente.');
-      }
+      setError(authError.message.includes('Invalid login') ? 'E-mail ou senha incorretos' : 'Erro ao entrar. Tente novamente.');
       return;
     }
 
-    if (data.user) {
-      onSuccess();
-    }
+    if (data.user) onSuccess();
   };
 
   const handleForgotPassword = async () => {
@@ -46,181 +36,97 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => 
       setError('Digite seu e-mail primeiro');
       return;
     }
-
     setLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
-
-    if (resetError) {
-      setError('Erro ao enviar e-mail de recuperação');
-    } else {
-      setError(null);
-      alert('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
-    }
+    if (resetError) setError('Erro ao enviar e-mail de recuperação');
+    else alert('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
   };
 
   const isFormValid = email && password;
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-cream)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '24px',
-      }}
-    >
+    <div className="min-h-screen bg-cream flex flex-col p-6">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
-        <button
-          onClick={onBack}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', marginLeft: '-8px' }}
-        >
-          <ChevronLeft size={24} color="var(--color-dark)" />
+      <div className="flex items-center mb-8">
+        <button onClick={onBack} className="bg-transparent border-none cursor-pointer p-2 -ml-2">
+          <ChevronLeft size={24} className="text-dark" />
         </button>
       </div>
 
       {/* Logo */}
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <img src="/images/logo-fomi.png" alt="Fomí" style={{ width: '100px', height: 'auto' }} />
+      <div className="text-center mb-6">
+        <img src="/images/logo-fomi.png" alt="Fomí" className="w-[100px] h-auto mx-auto" />
       </div>
 
       {/* Title */}
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontFamily: 'var(--font-display)',
-          fontWeight: 700,
-          color: 'var(--color-dark)',
-          textAlign: 'center',
-          marginBottom: '8px',
-        }}
-      >
+      <h1 className="text-2xl font-display font-bold text-dark text-center mb-2">
         Bem-vindo de volta!
       </h1>
-      <p style={{ fontSize: '0.9rem', color: 'var(--color-gray)', textAlign: 'center', marginBottom: '32px' }}>
-        Entre na sua conta
-      </p>
+      <p className="text-sm text-gray text-center mb-8">Entre na sua conta</p>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Email */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-dark)', marginBottom: '8px' }}>
-            E-mail
-          </label>
+          <label className="block text-sm font-medium text-dark mb-2">E-mail</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="voce@exemplo.com"
-            style={{
-              width: '100%',
-              padding: '14px 16px',
-              border: '1px solid #e0e0e0',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '1rem',
-              backgroundColor: '#fff',
-              outline: 'none',
-            }}
+            className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none"
           />
         </div>
 
-        {/* Password */}
         <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-dark)', marginBottom: '8px' }}>
-            Senha
-          </label>
-          <div style={{ position: 'relative' }}>
+          <label className="block text-sm font-medium text-dark mb-2">Senha</label>
+          <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Sua senha"
-              style={{
-                width: '100%',
-                padding: '14px 48px 14px 16px',
-                border: '1px solid #e0e0e0',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '1rem',
-                backgroundColor: '#fff',
-                outline: 'none',
-              }}
+              className="w-full p-3.5 pr-12 border border-gray/30 rounded-lg text-base bg-white outline-none"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-gray)',
-              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-gray"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Forgot Password */}
         <button
           type="button"
           onClick={handleForgotPassword}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-red)',
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            textAlign: 'right',
-            marginTop: '-8px',
-          }}
+          className="bg-transparent border-none text-red text-sm cursor-pointer text-right -mt-2"
         >
           Esqueceu a senha?
         </button>
 
-        {/* Error */}
-        {error && (
-          <p style={{ color: 'var(--color-red)', fontSize: '0.9rem', textAlign: 'center' }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="text-red text-sm text-center">{error}</p>}
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={!isFormValid || loading}
-          style={{
-            width: '100%',
-            padding: '16px 24px',
-            backgroundColor: isFormValid && !loading ? 'var(--color-red)' : 'var(--color-light-gray)',
-            color: isFormValid && !loading ? '#fff' : 'var(--color-gray)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: isFormValid && !loading ? 'pointer' : 'not-allowed',
-            boxShadow: isFormValid && !loading ? '0 4px 15px rgba(255, 59, 48, 0.3)' : 'none',
-          }}
+          className={`w-full py-4 px-6 border-none rounded-md text-base font-semibold cursor-pointer ${
+            isFormValid && !loading
+              ? 'bg-red text-white shadow-[0_4px_15px_rgba(255,59,48,0.3)]'
+              : 'bg-light-gray text-gray cursor-not-allowed'
+          }`}
         >
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>
 
       {/* Signup link */}
-      <p style={{ fontSize: '0.9rem', color: 'var(--color-gray)', textAlign: 'center', marginTop: '24px' }}>
+      <p className="text-sm text-gray text-center mt-6">
         Não tem uma conta?{' '}
-        <button
-          onClick={onSignup}
-          style={{ background: 'none', border: 'none', color: 'var(--color-red)', fontWeight: 600, cursor: 'pointer' }}
-        >
+        <button onClick={onSignup} className="bg-transparent border-none text-red font-semibold cursor-pointer">
           Criar conta
         </button>
       </p>
