@@ -1,5 +1,4 @@
 import React from 'react';
-import { X } from 'lucide-react';
 
 interface SignupBannerProps {
   onSignup: () => void;
@@ -15,12 +14,9 @@ export const SignupBanner: React.FC<SignupBannerProps> = ({ onSignup, onDismiss 
         left: '16px',
         right: '16px',
         backgroundColor: '#fff',
-        borderRadius: 'var(--radius-md)',
-        padding: '16px',
+        borderRadius: 'var(--radius-lg)',
+        padding: '20px',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
         zIndex: 60,
         animation: 'slideUp 0.3s ease-out',
       }}
@@ -32,47 +28,48 @@ export const SignupBanner: React.FC<SignupBannerProps> = ({ onSignup, onDismiss 
         }
       `}</style>
 
-      {/* Content */}
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '4px' }}>
-          Quer salvar seus favoritos?
-        </p>
-        <p style={{ fontSize: '0.8rem', color: 'var(--color-gray)' }}>
-          Crie sua conta em 30 segundos.
-        </p>
+      {/* Texto principal */}
+      <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '4px' }}>
+        Quer salvar seus favoritos e ver onde seus amigos vão?
+      </p>
+      <p style={{ fontSize: '0.85rem', color: 'var(--color-gray)', marginBottom: '16px' }}>
+        Crie sua conta em 30 segundos.
+      </p>
+
+      {/* Botões */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button
+          onClick={onSignup}
+          style={{
+            flex: 1,
+            padding: '14px 20px',
+            backgroundColor: 'var(--color-red)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)',
+          }}
+        >
+          Continuar
+        </button>
+
+        <button
+          onClick={onDismiss}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--color-gray)',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            padding: '8px',
+          }}
+        >
+          Mais tarde
+        </button>
       </div>
-
-      {/* CTA */}
-      <button
-        onClick={onSignup}
-        style={{
-          padding: '10px 16px',
-          backgroundColor: 'var(--color-red)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: '0.85rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        Continuar
-      </button>
-
-      {/* Dismiss */}
-      <button
-        onClick={onDismiss}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '4px',
-          cursor: 'pointer',
-          color: 'var(--color-gray)',
-        }}
-      >
-        <X size={18} />
-      </button>
     </div>
   );
 };

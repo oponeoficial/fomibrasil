@@ -20,6 +20,7 @@ export { RestaurantDetails } from './components/restaurant/RestaurantDetails';
 export { Login } from './components/auth/Login';
 export { Signup } from './components/auth/Signup';
 export { SignupBanner } from './components/auth/SignupBanner';
+export { EmailConfirmation } from './components/auth/EmailConfirmation';
 export { PostSignup } from './components/auth/PostSignup';
 
 // Onboarding Components
