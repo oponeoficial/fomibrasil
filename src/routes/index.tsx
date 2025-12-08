@@ -1,31 +1,40 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense, ReactNode } from 'react';
 
-// Loading component inline (temporário)
+// Loading component inline
 const Loading = () => (
-  <div style={{
-    minHeight: '100vh',
-    backgroundColor: 'var(--color-cream)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }}>
+  <div
+    style={{
+      minHeight: '100vh',
+      backgroundColor: 'var(--color-cream)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
     <img src="/images/logo-fomi.png" alt="Fomí" style={{ width: '80px', opacity: 0.5 }} />
   </div>
 );
 
-// Lazy load pages
-const Welcome = lazy(() => import('../pages/Welcome'));
-const Location = lazy(() => import('../pages/Location'));
-const Preferences = lazy(() => import('../pages/Preferences'));
+// Onboarding - importa diretamente dos componentes
+const Welcome = lazy(() => import('../components/onboarding/Welcome'));
+const Location = lazy(() => import('../components/onboarding/Location'));
+const Preferences = lazy(() => import('../components/onboarding/Preferences'));
+
+// Auth - importa diretamente dos componentes
+const Login = lazy(() => import('../components/auth/Login'));
+const Signup = lazy(() => import('../components/auth/Signup'));
+
+// App - mantém pages para componentes que precisam de lógica adicional
 const Feed = lazy(() => import('../pages/Feed'));
-const Login = lazy(() => import('../pages/Login'));
-const Signup = lazy(() => import('../pages/Signup'));
 const Profile = lazy(() => import('../pages/Profile'));
-const SavedRestaurants = lazy(() => import('../pages/SavedRestaurants'));
+
+// Saved - importa diretamente do componente
+const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants'));
 
 // Wrapper com Suspense
-const withSuspense = (Component: React.LazyExoticComponent<() => JSX.Element>): ReactNode => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<any>>): ReactNode => (
   <Suspense fallback={<Loading />}>
     <Component />
   </Suspense>
@@ -36,16 +45,16 @@ export const router = createBrowserRouter([
   { path: '/', element: withSuspense(Welcome) },
   { path: '/onboarding/location', element: withSuspense(Location) },
   { path: '/onboarding/preferences', element: withSuspense(Preferences) },
-  
+
   // Auth
   { path: '/login', element: withSuspense(Login) },
   { path: '/signup', element: withSuspense(Signup) },
-  
+
   // App
   { path: '/feed', element: withSuspense(Feed) },
   { path: '/profile', element: withSuspense(Profile) },
   { path: '/saved', element: withSuspense(SavedRestaurants) },
-  
+
   // Fallback
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

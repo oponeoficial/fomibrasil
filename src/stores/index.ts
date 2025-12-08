@@ -1,3 +1,4 @@
-export { useAuthStore } from './authStore';
-export { useAppStore } from './appStore';
-export { useOnboardingStore } from './onboardingStore';
+
+
+export { useAuthStore, useAppStore, useOnboardingStore, useStore } from '../store';
+export type { Location, Preferences, OnboardingStep } from '../store';

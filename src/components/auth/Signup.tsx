@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface SignupProps {
-  onSuccess: (email: string) => void;
-  onBack: () => void;
-  onLogin: () => void;
+  onSuccess?: (email: string) => void;
+  onBack?: () => void;
+  onLogin?: () => void;
 }
 
 export const Signup: React.FC<SignupProps> = ({ onSuccess, onBack, onLogin }) => {
+  const navigate = useNavigate();
+
+  const handleSuccess = onSuccess ?? (() => navigate('/login'));
+  const handleBack = onBack ?? (() => navigate('/'));
+  const handleLogin = onLogin ?? (() => navigate('/login'));
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -52,11 +59,15 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, onBack, onLogin }) =>
     setLoading(false);
 
     if (authError) {
-      setError(authError.message.includes('already registered') ? 'Este e-mail já está cadastrado' : 'Erro ao criar conta.');
+      setError(
+        authError.message.includes('already registered')
+          ? 'Este e-mail já está cadastrado'
+          : 'Erro ao criar conta.'
+      );
       return;
     }
 
-    if (data.user) onSuccess(email);
+    if (data.user) handleSuccess(email);
   };
 
   const isFormValid = email && password.length >= 8 && name && username;
@@ -65,7 +76,7 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, onBack, onLogin }) =>
     <div className="min-h-screen bg-cream flex flex-col p-6">
       {/* Header */}
       <div className="flex items-center mb-8">
-        <button onClick={onBack} className="bg-transparent border-none cursor-pointer p-2 -ml-2">
+        <button onClick={handleBack} className="bg-transparent border-none cursor-pointer p-2 -ml-2">
           <ChevronLeft size={24} className="text-dark" />
         </button>
       </div>
@@ -141,8 +152,14 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, onBack, onLogin }) =>
 
         <p className="text-xs text-gray text-center leading-relaxed">
           Ao criar conta, você concorda com nossos{' '}
-          <a href="#" className="text-red">Termos de Uso</a> e{' '}
-          <a href="#" className="text-red">Política de Privacidade</a>.
+          <a href="#" className="text-red">
+            Termos de Uso
+          </a>{' '}
+          e{' '}
+          <a href="#" className="text-red">
+            Política de Privacidade
+          </a>
+          .
         </p>
 
         <button
@@ -161,10 +178,15 @@ export const Signup: React.FC<SignupProps> = ({ onSuccess, onBack, onLogin }) =>
       {/* Login link */}
       <p className="text-sm text-gray text-center mt-6">
         Já tem uma conta?{' '}
-        <button onClick={onLogin} className="bg-transparent border-none text-red font-semibold cursor-pointer">
+        <button
+          onClick={handleLogin}
+          className="bg-transparent border-none text-red font-semibold cursor-pointer"
+        >
           Entrar
         </button>
       </p>
     </div>
   );
 };
+
+export default Signup;

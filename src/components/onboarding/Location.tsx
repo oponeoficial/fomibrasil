@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Navigation, Loader2, AlertCircle, Building2 } from 'lucide-react';
+import { useOnboardingStore } from '../../stores';
 
 interface LocationProps {
-  onComplete: () => void;
-  onSaveLocation: (
+  onComplete?: () => void;
+  onSaveLocation?: (
     latitude: number,
     longitude: number,
     options?: { city?: string }
@@ -13,11 +15,27 @@ interface LocationProps {
 
 type LocationStatus = 'idle' | 'requesting' | 'success' | 'denied' | 'error';
 
-export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, saving }) => {
+export const Location: React.FC<LocationProps> = ({
+  onComplete,
+  onSaveLocation,
+  saving = false,
+}) => {
+  const navigate = useNavigate();
+  const setStoreLocation = useOnboardingStore((s) => s.setLocation);
+
   const [status, setStatus] = useState<LocationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualCity, setManualCity] = useState('');
+
+  const handleComplete = onComplete ?? (() => navigate('/onboarding/preferences'));
+
+  const handleSaveLocation =
+    onSaveLocation ??
+    (async (latitude: number, longitude: number, options?: { city?: string }) => {
+      setStoreLocation({ latitude, longitude, city: options?.city });
+      return { success: true };
+    });
 
   const requestLocation = () => {
     setStatus('requesting');
@@ -33,10 +51,10 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const result = await onSaveLocation(latitude, longitude);
+          const result = await handleSaveLocation(latitude, longitude);
           if (result.success) {
             setStatus('success');
-            setTimeout(() => onComplete(), 800);
+            setTimeout(() => handleComplete(), 800);
           } else {
             setStatus('error');
             setErrorMessage(result.error || 'Erro ao salvar localização.');
@@ -74,7 +92,7 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
       'são paulo': { lat: -23.5505, lng: -46.6333 },
       'rio de janeiro': { lat: -22.9068, lng: -43.1729 },
       'belo horizonte': { lat: -19.9167, lng: -43.9345 },
-      'recife': { lat: -8.0476, lng: -34.8770 },
+      'recife': { lat: -8.0476, lng: -34.877 },
       'salvador': { lat: -12.9714, lng: -38.5014 },
     };
 
@@ -82,10 +100,10 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
     const coords = cityCoordinates[cityKey] || { lat: -14.235, lng: -51.9253 };
 
     try {
-      const result = await onSaveLocation(coords.lat, coords.lng, { city: manualCity });
+      const result = await handleSaveLocation(coords.lat, coords.lng, { city: manualCity });
       if (result.success) {
         setStatus('success');
-        setTimeout(() => onComplete(), 800);
+        setTimeout(() => handleComplete(), 800);
       } else {
         setStatus('error');
         setErrorMessage(result.error || 'Erro ao salvar.');
@@ -101,9 +119,11 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
       {/* Ícone */}
-      <div className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-8 ${
-        status === 'success' ? 'bg-green-500/15' : 'bg-red/10'
-      }`}>
+      <div
+        className={`w-[120px] h-[120px] rounded-full flex items-center justify-center mb-8 ${
+          status === 'success' ? 'bg-green-500/15' : 'bg-red/10'
+        }`}
+      >
         {isLoading ? (
           <Loader2 size={48} className="text-red animate-spin" />
         ) : status === 'success' ? (
@@ -149,7 +169,9 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
             onClick={handleManualSubmit}
             disabled={isLoading || !manualCity.trim()}
             className={`w-full p-4 rounded-xl border-none text-base font-semibold cursor-pointer flex items-center justify-center gap-2 ${
-              manualCity.trim() ? 'bg-red text-white' : 'bg-gray/30 text-gray cursor-not-allowed'
+              manualCity.trim()
+                ? 'bg-red text-white'
+                : 'bg-gray/30 text-gray cursor-not-allowed'
             }`}
           >
             {isLoading ? (
@@ -203,3 +225,5 @@ export const Location: React.FC<LocationProps> = ({ onComplete, onSaveLocation, 
     </div>
   );
 };
+
+export default Location;

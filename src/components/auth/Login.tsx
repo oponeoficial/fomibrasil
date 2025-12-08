@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface LoginProps {
-  onSuccess: () => void;
-  onBack: () => void;
-  onSignup: () => void;
+  onSuccess?: () => void;
+  onBack?: () => void;
+  onSignup?: () => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => {
+  const navigate = useNavigate();
+
+  const handleSuccess = onSuccess ?? (() => navigate('/feed'));
+  const handleBack = onBack ?? (() => navigate('/'));
+  const handleSignup = onSignup ?? (() => navigate('/signup'));
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,15 +27,22 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => 
     setError(null);
     setLoading(true);
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     setLoading(false);
 
     if (authError) {
-      setError(authError.message.includes('Invalid login') ? 'E-mail ou senha incorretos' : 'Erro ao entrar. Tente novamente.');
+      setError(
+        authError.message.includes('Invalid login')
+          ? 'E-mail ou senha incorretos'
+          : 'Erro ao entrar. Tente novamente.'
+      );
       return;
     }
 
-    if (data.user) onSuccess();
+    if (data.user) handleSuccess();
   };
 
   const handleForgotPassword = async () => {
@@ -51,7 +65,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => 
     <div className="min-h-screen bg-cream flex flex-col p-6">
       {/* Header */}
       <div className="flex items-center mb-8">
-        <button onClick={onBack} className="bg-transparent border-none cursor-pointer p-2 -ml-2">
+        <button onClick={handleBack} className="bg-transparent border-none cursor-pointer p-2 -ml-2">
           <ChevronLeft size={24} className="text-dark" />
         </button>
       </div>
@@ -126,10 +140,15 @@ export const Login: React.FC<LoginProps> = ({ onSuccess, onBack, onSignup }) => 
       {/* Signup link */}
       <p className="text-sm text-gray text-center mt-6">
         Não tem uma conta?{' '}
-        <button onClick={onSignup} className="bg-transparent border-none text-red font-semibold cursor-pointer">
+        <button
+          onClick={handleSignup}
+          className="bg-transparent border-none text-red font-semibold cursor-pointer"
+        >
           Criar conta
         </button>
       </p>
     </div>
   );
 };
+
+export default Login;

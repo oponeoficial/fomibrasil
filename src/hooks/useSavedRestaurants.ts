@@ -11,6 +11,7 @@ export interface SavedList {
 }
 
 export interface SavedRestaurant {
+  notes: any;
   id: string;
   restaurant_id: string;
   list_id: string;

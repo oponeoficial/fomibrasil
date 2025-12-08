@@ -1,11 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, Plus, Star, Bell, BellOff, Send, Trash2, Check, X, Filter, Loader2 } from 'lucide-react';
-import { useSavedRestaurants, SavedRestaurant, SavedList } from '../../hooks/useSavedRestaurants';
+import { useNavigate } from 'react-router-dom';
+import {
+  ChevronLeft,
+  Plus,
+  Star,
+  Bell,
+  BellOff,
+  Send,
+  Trash2,
+  X,
+  Filter,
+  Loader2,
+} from 'lucide-react';
+import { useSavedRestaurants, SavedRestaurant } from '../../hooks/useSavedRestaurants';
+import { useAuthStore } from '../../stores';
 
 interface SavedRestaurantsProps {
-  userId: string | null;
-  onBack: () => void;
-  onRestaurantClick: (restaurantId: string) => void;
+  userId?: string | null;
+  onBack?: () => void;
+  onRestaurantClick?: (restaurantId: string) => void;
 }
 
 type SortOption = 'recent' | 'nearest' | 'rating' | 'visits';
@@ -19,10 +32,27 @@ const sortOptions: { id: SortOption; label: string }[] = [
 
 const emojiOptions = ['📁', '🍕', '🍣', '🍔', '🥗', '☕', '🍷', '🎉', '💼', '✈️', '🏠', '❤️'];
 
-export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBack, onRestaurantClick }) => {
+export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
+  userId: userIdProp,
+  onBack,
+  onRestaurantClick,
+}) => {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
+  const userId = userIdProp ?? user?.id ?? null;
+  const handleBack = onBack ?? (() => navigate('/feed'));
+  const handleRestaurantClick = onRestaurantClick ?? ((id: string) => console.log('Restaurant clicked:', id));
+
   const {
-    lists, loading, markAsVisited, createList, removeRestaurant,
-    toggleReminder, getRestaurantsByList, getListCounts,
+    lists,
+    loading,
+    markAsVisited,
+    createList,
+    removeRestaurant,
+    toggleReminder,
+    getRestaurantsByList,
+    getListCounts,
   } = useSavedRestaurants(userId);
 
   const [activeListId, setActiveListId] = useState<string | null>(null);
@@ -30,7 +60,11 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState<SavedRestaurant | null>(null);
-  const [contextMenu, setContextMenu] = useState<{ restaurant: SavedRestaurant; x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    restaurant: SavedRestaurant;
+    x: number;
+    y: number;
+  } | null>(null);
   const [newListName, setNewListName] = useState('');
   const [newListIcon, setNewListIcon] = useState('📁');
 
@@ -39,19 +73,25 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
 
   useEffect(() => {
     if (lists.length > 0 && !activeListId) {
-      const toTry = lists.find(l => l.system_type === 'to_try');
+      const toTry = lists.find((l) => l.system_type === 'to_try');
       setActiveListId(toTry?.id || lists[0].id);
     }
   }, [lists, activeListId]);
 
-  const activeList = lists.find(l => l.id === activeListId);
+  const activeList = lists.find((l) => l.id === activeListId);
   const activeRestaurants = activeListId ? getRestaurantsByList(activeListId) : [];
 
   const sortedRestaurants = [...activeRestaurants].sort((a, b) => {
     switch (sortBy) {
-      case 'rating': return (b.personal_rating || b.restaurant_rating || 0) - (a.personal_rating || a.restaurant_rating || 0);
-      case 'visits': return b.visit_count - a.visit_count;
-      default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'rating':
+        return (
+          (b.personal_rating || b.restaurant_rating || 0) -
+          (a.personal_rating || a.restaurant_rating || 0)
+        );
+      case 'visits':
+        return b.visit_count - a.visit_count;
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
 
@@ -95,8 +135,13 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
       <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-6 text-center">
         <span className="text-6xl mb-4">🔒</span>
         <h2 className="text-xl font-bold mb-2 text-dark">Faça login para acessar</h2>
-        <p className="text-gray mb-6">Seus restaurantes salvos estarão disponíveis após o login.</p>
-        <button onClick={onBack} className="py-3 px-6 bg-red text-white border-none rounded-xl font-semibold cursor-pointer">
+        <p className="text-gray mb-6">
+          Seus restaurantes salvos estarão disponíveis após o login.
+        </p>
+        <button
+          onClick={handleBack}
+          className="py-3 px-6 bg-red text-white border-none rounded-xl font-semibold cursor-pointer"
+        >
           Voltar
         </button>
       </div>
@@ -108,7 +153,10 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
       {/* Header */}
       <header className="sticky top-0 bg-cream/95 backdrop-blur-md p-4 border-b border-black/5 z-10">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={onBack} className="w-10 h-10 rounded-full border-none bg-black/5 cursor-pointer flex items-center justify-center">
+          <button
+            onClick={handleBack}
+            className="w-10 h-10 rounded-full border-none bg-black/5 cursor-pointer flex items-center justify-center"
+          >
             <ChevronLeft size={24} className="text-dark" />
           </button>
           <h1 className="text-xl font-bold font-display text-dark">Restaurantes Salvos</h1>
@@ -122,7 +170,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
 
         {/* Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {lists.map(list => (
+          {lists.map((list) => (
             <button
               key={list.id}
               onClick={() => setActiveListId(list.id)}
@@ -135,9 +183,11 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
               <span>{list.icon}</span>
               <span>{list.name}</span>
               {counts[list.id] > 0 && (
-                <span className={`py-0.5 px-2 rounded-xl text-xs ${
-                  activeListId === list.id ? 'bg-white/30' : 'bg-light-gray'
-                }`}>
+                <span
+                  className={`py-0.5 px-2 rounded-xl text-xs ${
+                    activeListId === list.id ? 'bg-white/30' : 'bg-light-gray'
+                  }`}
+                >
                   {counts[list.id]}
                 </span>
               )}
@@ -149,22 +199,26 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
       {/* Sort Bar */}
       <div className="flex items-center justify-between p-3 px-4 bg-white border-b border-black/5 relative">
         <p className="text-sm text-gray">
-          {sortedRestaurants.length} {sortedRestaurants.length === 1 ? 'restaurante' : 'restaurantes'}
+          {sortedRestaurants.length}{' '}
+          {sortedRestaurants.length === 1 ? 'restaurante' : 'restaurantes'}
         </p>
         <button
           onClick={() => setShowSortMenu(!showSortMenu)}
           className="flex items-center gap-1.5 py-2 px-3 bg-light-gray border-none rounded-lg text-sm text-dark cursor-pointer"
         >
           <Filter size={14} />
-          {sortOptions.find(o => o.id === sortBy)?.label}
+          {sortOptions.find((o) => o.id === sortBy)?.label}
         </button>
 
         {showSortMenu && (
           <div className="absolute right-4 top-[50px] bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] z-20 overflow-hidden">
-            {sortOptions.map(option => (
+            {sortOptions.map((option) => (
               <button
                 key={option.id}
-                onClick={() => { setSortBy(option.id); setShowSortMenu(false); }}
+                onClick={() => {
+                  setSortBy(option.id);
+                  setShowSortMenu(false);
+                }}
                 className={`block w-full py-3 px-5 border-none text-left text-sm cursor-pointer ${
                   sortBy === option.id ? 'bg-red/10 text-red' : 'bg-transparent text-dark'
                 }`}
@@ -181,18 +235,22 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
         {sortedRestaurants.length === 0 ? (
           <div className="text-center py-16 px-5 text-gray">
             <span className="text-5xl block mb-4">{activeList?.icon || '📭'}</span>
-            <p className="text-base font-medium mb-2 text-dark">Nenhum restaurante aqui ainda</p>
+            <p className="text-base font-medium mb-2 text-dark">
+              Nenhum restaurante aqui ainda
+            </p>
             <p className="text-sm">
-              {activeList?.system_type === 'to_try' ? 'Salve restaurantes que quer experimentar!' : 'Adicione restaurantes a esta lista.'}
+              {activeList?.system_type === 'to_try'
+                ? 'Salve restaurantes que quer experimentar!'
+                : 'Adicione restaurantes a esta lista.'}
             </p>
           </div>
         ) : (
-          sortedRestaurants.map(restaurant => (
+          sortedRestaurants.map((restaurant) => (
             <RestaurantCard
               key={restaurant.id}
               restaurant={restaurant}
               listType={activeList?.system_type || null}
-              onClick={() => onRestaurantClick(restaurant.restaurant_id)}
+              onClick={() => handleRestaurantClick(restaurant.restaurant_id)}
               onMarkVisited={() => setShowRatingModal(restaurant)}
               onTouchStart={(e) => handleTouchStart(restaurant, e)}
               onTouchEnd={handleTouchEnd}
@@ -203,12 +261,24 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
 
       {/* Rating Modal */}
       {showRatingModal && (
-        <div onClick={() => setShowRatingModal(null)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-5">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-[320px] text-center">
+        <div
+          onClick={() => setShowRatingModal(null)}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-5"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl p-6 w-full max-w-[320px] text-center"
+          >
             <h3 className="text-xl font-bold mb-2 text-dark">O que achou?</h3>
             <p className="text-sm text-gray mb-5">{showRatingModal.restaurant_name}</p>
             <div className="flex justify-center gap-2 mb-4">
-              {[{ r: 1, e: '😞' }, { r: 2, e: '😕' }, { r: 3, e: '😐' }, { r: 4, e: '😊' }, { r: 5, e: '🤩' }].map(({ r, e }) => (
+              {[
+                { r: 1, e: '😞' },
+                { r: 2, e: '😕' },
+                { r: 3, e: '😐' },
+                { r: 4, e: '😊' },
+                { r: 5, e: '🤩' },
+              ].map(({ r, e }) => (
                 <button
                   key={r}
                   onClick={() => handleRating(r)}
@@ -229,24 +299,49 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
           <div onClick={() => setContextMenu(null)} className="fixed inset-0 z-[199]" />
           <div
             className="fixed bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] z-[200] overflow-hidden min-w-[180px]"
-            style={{ left: Math.min(contextMenu.x, window.innerWidth - 200), top: Math.min(contextMenu.y, window.innerHeight - 180) }}
+            style={{
+              left: Math.min(contextMenu.x, window.innerWidth - 200),
+              top: Math.min(contextMenu.y, window.innerHeight - 180),
+            }}
           >
             <button
-              onClick={async () => { await toggleReminder(contextMenu.restaurant.id, !contextMenu.restaurant.reminder_enabled); setContextMenu(null); }}
+              onClick={async () => {
+                await toggleReminder(
+                  contextMenu.restaurant.id,
+                  !contextMenu.restaurant.reminder_enabled
+                );
+                setContextMenu(null);
+              }}
               className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none border-b border-black/5 text-left text-sm text-dark cursor-pointer"
             >
-              {contextMenu.restaurant.reminder_enabled ? <BellOff size={18} /> : <Bell size={18} />}
-              {contextMenu.restaurant.reminder_enabled ? 'Desativar lembrete' : 'Definir lembrete'}
+              {contextMenu.restaurant.reminder_enabled ? (
+                <BellOff size={18} />
+              ) : (
+                <Bell size={18} />
+              )}
+              {contextMenu.restaurant.reminder_enabled
+                ? 'Desativar lembrete'
+                : 'Definir lembrete'}
             </button>
             <button
-              onClick={() => { if (navigator.share) navigator.share({ title: contextMenu.restaurant.restaurant_name, text: `Vamos aqui? ${contextMenu.restaurant.restaurant_name}` }); setContextMenu(null); }}
+              onClick={() => {
+                if (navigator.share)
+                  navigator.share({
+                    title: contextMenu.restaurant.restaurant_name,
+                    text: `Vamos aqui? ${contextMenu.restaurant.restaurant_name}`,
+                  });
+                setContextMenu(null);
+              }}
               className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none border-b border-black/5 text-left text-sm text-dark cursor-pointer"
             >
               <Send size={18} />
               Convidar amigo
             </button>
             <button
-              onClick={async () => { await removeRestaurant(contextMenu.restaurant.id); setContextMenu(null); }}
+              onClick={async () => {
+                await removeRestaurant(contextMenu.restaurant.id);
+                setContextMenu(null);
+              }}
               className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none text-left text-sm text-red cursor-pointer"
             >
               <Trash2 size={18} />
@@ -258,19 +353,28 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
 
       {/* Create List Modal */}
       {showCreateModal && (
-        <div onClick={() => setShowCreateModal(false)} className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-5">
-          <div onClick={e => e.stopPropagation()} className="bg-white rounded-2xl p-6 w-full max-w-[320px]">
+        <div
+          onClick={() => setShowCreateModal(false)}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-5"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl p-6 w-full max-w-[320px]"
+          >
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-dark">Nova Lista</h3>
-              <button onClick={() => setShowCreateModal(false)} className="bg-transparent border-none cursor-pointer">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="bg-transparent border-none cursor-pointer"
+              >
                 <X size={20} className="text-gray" />
               </button>
             </div>
-            
+
             <div className="mb-4">
               <p className="text-sm text-gray mb-2">Escolha um ícone</p>
               <div className="flex flex-wrap gap-2">
-                {emojiOptions.map(emoji => (
+                {emojiOptions.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => setNewListIcon(emoji)}
@@ -291,7 +395,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
               <input
                 type="text"
                 value={newListName}
-                onChange={e => setNewListName(e.target.value)}
+                onChange={(e) => setNewListName(e.target.value)}
                 placeholder="Ex: Com a Equipe do Trabalho"
                 className="w-full p-3 px-4 rounded-xl border border-black/10 text-base outline-none"
               />
@@ -301,7 +405,9 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({ userId, onBa
               onClick={handleCreateList}
               disabled={!newListName.trim()}
               className={`w-full py-3.5 border-none rounded-xl text-base font-semibold cursor-pointer ${
-                newListName.trim() ? 'bg-red text-white' : 'bg-light-gray text-gray cursor-not-allowed'
+                newListName.trim()
+                  ? 'bg-red text-white'
+                  : 'bg-light-gray text-gray cursor-not-allowed'
               }`}
             >
               Criar Lista
@@ -324,7 +430,12 @@ interface RestaurantCardProps {
 }
 
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
-  restaurant, listType, onClick, onMarkVisited, onTouchStart, onTouchEnd,
+  restaurant,
+  listType,
+  onClick,
+  onMarkVisited,
+  onTouchStart,
+  onTouchEnd,
 }) => {
   return (
     <div
@@ -337,7 +448,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       <div
         onClick={onClick}
         className="w-[100px] min-h-[100px] bg-light-gray bg-cover bg-center cursor-pointer relative"
-        style={{ backgroundImage: restaurant.restaurant_image ? `url(${restaurant.restaurant_image})` : 'none' }}
+        style={{
+          backgroundImage: restaurant.restaurant_image
+            ? `url(${restaurant.restaurant_image})`
+            : 'none',
+        }}
       >
         {restaurant.reminder_enabled && (
           <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red flex items-center justify-center">
@@ -349,61 +464,52 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       {/* Content */}
       <div className="flex-1 p-3 flex flex-col justify-between">
         <div onClick={onClick} className="cursor-pointer">
-          <h3 className="text-base font-semibold text-dark mb-1">{restaurant.restaurant_name}</h3>
+          <h3 className="text-base font-semibold text-dark mb-1">
+            {restaurant.restaurant_name}
+          </h3>
 
           <div className="flex items-center gap-2 mb-1.5">
             {restaurant.personal_rating ? (
               <div className="flex items-center gap-1">
                 <span className="text-xs text-gray">Minha nota:</span>
-                {[1, 2, 3, 4, 5].map(i => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <Star
                     key={i}
                     size={12}
-                    fill={i <= restaurant.personal_rating! ? '#FFD60A' : 'transparent'}
-                    color={i <= restaurant.personal_rating! ? '#FFD60A' : '#ddd'}
+                    fill={i <= restaurant.personal_rating! ? '#FF3B30' : 'transparent'}
+                    className={
+                      i <= restaurant.personal_rating! ? 'text-red' : 'text-gray/30'
+                    }
                   />
                 ))}
               </div>
-            ) : restaurant.restaurant_rating && (
+            ) : restaurant.restaurant_rating ? (
               <div className="flex items-center gap-1">
-                <Star size={12} fill="#FFD60A" color="#FFD60A" />
-                <span className="text-sm text-dark">{restaurant.restaurant_rating}</span>
+                <Star size={12} fill="#FF3B30" className="text-red" />
+                <span className="text-sm font-medium text-dark">
+                  {restaurant.restaurant_rating.toFixed(1)}
+                </span>
               </div>
-            )}
-            {restaurant.restaurant_price && (
-              <span className="text-sm text-gray">{restaurant.restaurant_price}</span>
-            )}
+            ) : null}
           </div>
 
-          {restaurant.context_tags.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap">
-              {restaurant.context_tags.map((tag, i) => (
-                <span key={i} className="py-0.5 px-2 bg-red/10 rounded-md text-[0.7rem] text-red">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {restaurant.personal_note && (
-            <p className="text-xs text-gray italic mt-1">"{restaurant.personal_note}"</p>
+          {restaurant.restaurant_address && (
+            <p className="text-xs text-gray truncate">{restaurant.restaurant_address}</p>
           )}
         </div>
 
+        {/* Action Button */}
         {listType === 'to_try' && !restaurant.visited && (
           <button
-            onClick={(e) => { e.stopPropagation(); onMarkVisited(); }}
-            className="mt-2 py-2 px-3 bg-red text-white border-none rounded-lg text-sm font-semibold cursor-pointer flex items-center justify-center gap-1.5"
+            onClick={onMarkVisited}
+            className="mt-2 py-2 px-3 bg-red/10 text-red border-none rounded-lg text-xs font-semibold cursor-pointer"
           >
-            <Check size={16} />
-            Já fui!
+            Já fui! Avaliar
           </button>
-        )}
-
-        {listType === 'favorites' && restaurant.visit_count > 0 && (
-          <p className="text-xs text-gray mt-1">Visitado {restaurant.visit_count}x</p>
         )}
       </div>
     </div>
   );
 };
+
+export default SavedRestaurants;

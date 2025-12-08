@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Check } from 'lucide-react';
+import { useOnboardingStore } from '../../stores';
 
 interface UserPreferences {
   company: string[];
@@ -9,8 +11,8 @@ interface UserPreferences {
 }
 
 interface PreferencesProps {
-  onComplete: (preferences: UserPreferences) => void;
-  onSaveToSupabase: (preferences: UserPreferences) => Promise<{ success: boolean }>;
+  onComplete?: (preferences: UserPreferences) => void;
+  onSaveToSupabase?: (preferences: UserPreferences) => Promise<{ success: boolean }>;
   saving?: boolean;
 }
 
@@ -53,7 +55,14 @@ const budgetOptions = [
   { id: 'varies', label: 'Depende da ocasião', subtitle: '', icon: '🎲' },
 ];
 
-export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSupabase, saving }) => {
+export const Preferences: React.FC<PreferencesProps> = ({
+  onComplete,
+  onSaveToSupabase,
+  saving = false,
+}) => {
+  const navigate = useNavigate();
+  const { setPreferences: setStorePreferences, completeOnboarding } = useOnboardingStore();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -65,33 +74,48 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
 
   const step = steps[currentStep];
 
+  const handleComplete = onComplete ?? (() => navigate('/feed'));
+
+  const handleSaveToSupabase =
+    onSaveToSupabase ??
+    (async (prefs: UserPreferences) => {
+      setStorePreferences(prefs);
+      completeOnboarding();
+      return { success: true };
+    });
+
   const toggleSelection = (field: 'company' | 'mood' | 'restrictions', value: string) => {
-    setPreferences(prev => {
+    setPreferences((prev) => {
       const current = prev[field];
       return current.includes(value)
-        ? { ...prev, [field]: current.filter(v => v !== value) }
+        ? { ...prev, [field]: current.filter((v) => v !== value) }
         : { ...prev, [field]: [...current, value] };
     });
   };
 
   const canProceed = () => {
     switch (step) {
-      case 'company': return preferences.company.length > 0;
-      case 'mood': return preferences.mood.length > 0;
-      case 'restrictions': return preferences.restrictions.length > 0;
-      case 'budget': return preferences.budget !== null;
-      default: return false;
+      case 'company':
+        return preferences.company.length > 0;
+      case 'mood':
+        return preferences.mood.length > 0;
+      case 'restrictions':
+        return preferences.restrictions.length > 0;
+      case 'budget':
+        return preferences.budget !== null;
+      default:
+        return false;
     }
   };
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     } else {
       setIsSaving(true);
       try {
-        const result = await onSaveToSupabase(preferences);
-        if (result.success) onComplete(preferences);
+        const result = await handleSaveToSupabase(preferences);
+        if (result.success) handleComplete(preferences);
       } finally {
         setIsSaving(false);
       }
@@ -105,7 +129,7 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <button
-          onClick={() => currentStep > 0 && setCurrentStep(prev => prev - 1)}
+          onClick={() => currentStep > 0 && setCurrentStep((prev) => prev - 1)}
           disabled={currentStep === 0}
           className={`w-10 h-10 rounded-full border-none flex items-center justify-center ${
             currentStep === 0 ? 'opacity-0 cursor-default' : 'bg-black/5 cursor-pointer'
@@ -143,7 +167,7 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
         {/* Company Step */}
         {step === 'company' && (
           <div className="grid grid-cols-2 gap-3">
-            {companyOptions.map(option => {
+            {companyOptions.map((option) => {
               const isSelected = preferences.company.includes(option.id);
               return (
                 <button
@@ -171,7 +195,7 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
         {/* Mood Step */}
         {step === 'mood' && (
           <div className="grid grid-cols-2 gap-3">
-            {moodOptions.map(option => {
+            {moodOptions.map((option) => {
               const isSelected = preferences.mood.includes(option.id);
               return (
                 <button
@@ -199,7 +223,7 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
         {/* Restrictions Step */}
         {step === 'restrictions' && (
           <div className="flex flex-col gap-3">
-            {restrictionOptions.map(option => {
+            {restrictionOptions.map((option) => {
               const isSelected = preferences.restrictions.includes(option.id);
               return (
                 <button
@@ -210,7 +234,11 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
                   }`}
                 >
                   <span className="text-2xl">{option.icon}</span>
-                  <span className={`flex-1 text-left text-base ${isSelected ? 'font-semibold text-red' : 'text-dark'}`}>
+                  <span
+                    className={`flex-1 text-left text-base ${
+                      isSelected ? 'font-semibold text-red' : 'text-dark'
+                    }`}
+                  >
                     {option.label}
                   </span>
                   {isSelected && <Check size={20} className="text-red" />}
@@ -223,19 +251,23 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
         {/* Budget Step */}
         {step === 'budget' && (
           <div className="flex flex-col gap-3">
-            {budgetOptions.map(option => {
+            {budgetOptions.map((option) => {
               const isSelected = preferences.budget === option.id;
               return (
                 <button
                   key={option.id}
-                  onClick={() => setPreferences(prev => ({ ...prev, budget: option.id }))}
+                  onClick={() => setPreferences((prev) => ({ ...prev, budget: option.id }))}
                   className={`p-5 rounded-xl border-2 cursor-pointer flex items-center gap-4 shadow-sm transition-all ${
                     isSelected ? 'border-red bg-red/10' : 'border-transparent bg-white'
                   }`}
                 >
                   <span className="text-2xl">{option.icon}</span>
                   <div className="flex-1 text-left">
-                    <p className={`text-base ${isSelected ? 'font-semibold text-red' : 'font-medium text-dark'}`}>
+                    <p
+                      className={`text-base ${
+                        isSelected ? 'font-semibold text-red' : 'font-medium text-dark'
+                      }`}
+                    >
                       {option.label}
                     </p>
                     {option.subtitle && <p className="text-xs text-gray">{option.subtitle}</p>}
@@ -275,3 +307,5 @@ export const Preferences: React.FC<PreferencesProps> = ({ onComplete, onSaveToSu
     </div>
   );
 };
+
+export default Preferences;
