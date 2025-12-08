@@ -7,45 +7,41 @@ interface WelcomeProps {
 
 export const Welcome: React.FC<WelcomeProps> = ({ onStart, onLogin }) => {
   return (
-    <div className="min-h-screen bg-cream flex flex-col items-center p-6 text-center relative overflow-hidden">
-      {/* Textura bege sutil */}
-      <div
-        className="absolute inset-0 opacity-40 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
+    <div className="min-h-[100dvh] bg-cream flex flex-col items-center px-6 pt-16 pb-10">
+      {/* Logo centralizada */}
+      <div className="mb-auto">
+        <img src="/images/logo-fomi.png" alt="Fomí" className="w-44 h-auto" />
+      </div>
 
-      {/* Gradiente */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,248,240,0.8)_0%,transparent_60%),radial-gradient(ellipse_at_50%_100%,rgba(245,235,220,0.5)_0%,transparent_50%)]" />
-
-      {/* Conteúdo */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-[320px] mt-[15vh]">
-        {/* Logo */}
-        <div className="mb-6">
-          <img src="/images/logo-fomi.png" alt="Fomí" className="w-[180px] h-auto" />
-        </div>
-
-        {/* Tagline */}
-        <p className="text-lg text-dark mb-0 max-w-[300px] leading-relaxed font-normal">
-          A rede social onde pessoas descobrem e compartilham experiências gastronômicas!
+      {/* Content centralizado */}
+      <div className="flex flex-col items-center text-center mb-auto">
+        <h1 className="text-3xl font-bold text-dark leading-tight mb-14">
+          Bem-vindo à <span className="text-red">FOMÍ</span>
+        </h1>
+        
+        <p className="text-lg font-medium text-dark mb-9 leading-relaxed max-w-[300px]">
+          A comunidade de quem curte comer bem e leva isso a sério.
+        </p>
+        
+        <p className="text-base text-gray leading-relaxed max-w-[300px]">
+          Aqui você descobre onde comer bem, com indicações reais de gente que tem a mesma paixão que você, eu e todos da fomí.
         </p>
       </div>
 
-      {/* Botões */}
-      <div className="relative z-10 w-full max-w-[320px] mt-auto mb-12 flex flex-col gap-4">
+      {/* CTAs */}
+      <div className="w-full max-w-[320px] space-y-4">
         <button
           onClick={onStart}
-          className="w-full py-4 px-6 bg-red text-white border-none rounded-md text-base font-semibold cursor-pointer shadow-[0_4px_15px_rgba(255,59,48,0.3)]"
+          className="w-full h-14 bg-red text-white font-semibold text-base rounded-lg shadow-[0_4px_15px_rgba(255,59,48,0.3)] active:scale-[0.98] transition-transform"
         >
-          Começar minha jornada gastronômica
+          Vem largar essa fomí de comer bem
         </button>
-
+        
         <button
           onClick={onLogin}
-          className="w-full py-4 px-6 bg-transparent text-dark border border-dark rounded-md text-base font-medium cursor-pointer"
+          className="w-full h-12 bg-transparent text-dark font-medium text-base border border-dark rounded-lg active:opacity-70 transition-opacity"
         >
-          Voltar para a minha comunidade
+          Já tenho conta
         </button>
       </div>
     </div>

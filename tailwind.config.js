@@ -9,14 +9,14 @@ export default {
       colors: {
         red: '#FF3B30',
         orange: '#FF9500',
-        cream: '#FFF8F0',
+        cream: '#FDFEE7',
         dark: '#2C2C2C',
         gray: '#8E8E93',
         'light-gray': '#F2F2F7',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['Fredoka', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
       },
       borderRadius: {
         'sm': '8px',
