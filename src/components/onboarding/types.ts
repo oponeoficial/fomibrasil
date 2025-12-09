@@ -38,8 +38,7 @@ export interface ChipValidation {
 
 export interface OnboardingData {
   // Tela 1 - Signup
-  firstName: string;
-  lastName: string;
+  firstName: string; // Nome completo
   username: string;
   email: string;
   password: string;
@@ -74,7 +73,6 @@ export interface OnboardingData {
 
 export const INITIAL_DATA: OnboardingData = {
   firstName: '',
-  lastName: '',
   username: '',
   email: '',
   password: '',

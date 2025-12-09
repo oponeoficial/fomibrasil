@@ -52,10 +52,10 @@ export function useOnboarding(): UseOnboardingReturn {
     switch (step) {
       case 'signup':
         return (
-          data.firstName.trim().length >= 2 &&
-          data.lastName.trim().length >= 2 &&
+          data.firstName.trim().length >= 3 &&
           USERNAME_REGEX.test(data.username) &&
           data.email.includes('@') &&
+          data.email.includes('.') &&
           data.password.length >= PASSWORD_MIN_LENGTH
         );
 
@@ -139,13 +139,13 @@ export function useOnboarding(): UseOnboardingReturn {
       }
 
       // 2. Criar conta no Supabase Auth
+      // O trigger on_auth_user_created vai criar o perfil automaticamente
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
+            full_name: data.firstName,
             username: data.username,
           },
         },
@@ -163,23 +163,11 @@ export function useOnboarding(): UseOnboardingReturn {
         return false;
       }
 
-      // 3. Criar perfil básico
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: authData.user.id,
-        username: data.username,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        onboarding_completed: false,
-      });
-
-      if (profileError) {
-        console.error('Erro ao criar perfil:', profileError);
-      }
-
+      console.log('Usuário criado com sucesso:', authData.user.id);
       setLoading(false);
       return true;
     } catch (err) {
+      console.error('Erro no signup:', err);
       setError('Erro ao criar conta. Tente novamente.');
       setLoading(false);
       return false;

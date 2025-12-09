@@ -12,8 +12,6 @@ import type { ChipOption, ChipValidation } from './types';
 export const GENDER_OPTIONS: ChipOption[] = [
   { id: 'male', label: 'Masculino', emoji: '👨' },
   { id: 'female', label: 'Feminino', emoji: '👩' },
-  { id: 'non-binary', label: 'Não-binário', emoji: '🧑' },
-  { id: 'other', label: 'Outro', emoji: '✨' },
   { id: 'prefer-not', label: 'Prefiro não dizer', emoji: '🤐' },
 ];
 
