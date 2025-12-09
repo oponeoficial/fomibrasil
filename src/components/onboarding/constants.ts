@@ -172,12 +172,6 @@ export const RESTRICTION_OPTIONS: ChipOption[] = [
 // ============================================================================
 
 export const STEP_CONTENT = {
-  welcome: {
-    title: 'Pra quem tem fomí de comer bem',
-    subtitle: 'Descubra os melhores lugares da cidade com recomendações da comunidade.',
-    cta: 'Começar',
-    secondaryCta: 'Já tenho conta',
-  },
   signup: {
     title: 'Criar conta',
     subtitle: 'Crie seu perfil pra salvar seus lugares favoritos e receber recomendações da comunidade de quem come bem.',

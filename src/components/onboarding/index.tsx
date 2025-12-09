@@ -9,7 +9,6 @@ import { useOnboarding } from './hooks/useOnboarding';
 import { StepContainer, FixedFooter, CTAButton } from './components/UI';
 
 // Steps
-import { WelcomeStep } from './steps/WelcomeStep';
 import { SignupStep } from './steps/SignupStep';
 import { ProfileStep } from './steps/ProfileStep';
 import { CuisinesStep } from './steps/CuisinesStep';
@@ -59,7 +58,6 @@ export function Onboarding() {
   };
 
   const savePreferences = async () => {
-    // Salvar preferências no perfil do usuário
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
@@ -83,10 +81,6 @@ export function Onboarding() {
     }
   };
 
-  const handleLogin = () => {
-    navigate('/login');
-  };
-
   const handleSkipEmail = () => {
     navigate('/feed');
   };
@@ -106,14 +100,6 @@ export function Onboarding() {
     };
 
     switch (step) {
-      case 'welcome':
-        return (
-          <WelcomeStep
-            onContinue={nextStep}
-            onLogin={handleLogin}
-          />
-        );
-
       case 'signup':
         return <SignupStep {...commonProps} />;
 
@@ -156,8 +142,8 @@ export function Onboarding() {
     }
   };
 
-  // Welcome não tem footer padrão
-  if (step === 'welcome' || step === 'email-confirm') {
+  // EmailConfirm tem layout próprio (sem footer padrão)
+  if (step === 'email-confirm') {
     return renderStep();
   }
 

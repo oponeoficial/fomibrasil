@@ -3,7 +3,6 @@
  */
 
 export type OnboardingStep = 
-  | 'welcome'
   | 'signup'
   | 'profile'
   | 'cuisines'
@@ -14,7 +13,6 @@ export type OnboardingStep =
   | 'email-confirm';
 
 export const STEP_ORDER: OnboardingStep[] = [
-  'welcome',
   'signup',
   'profile',
   'cuisines',

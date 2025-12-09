@@ -122,43 +122,27 @@ export function CTAButton({
   variant = 'primary',
   fullWidth = true,
 }: CTAButtonProps) {
-  const baseClass = `
-    py-4 px-6 rounded-xl font-semibold text-base
-    transition-all duration-200
-    disabled:opacity-50 disabled:cursor-not-allowed
-    ${fullWidth ? 'w-full' : ''}
-  `;
-
-  const variantClass = {
-    primary: 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30',
+  const base = 'py-4 px-6 rounded-xl font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const width = fullWidth ? 'w-full' : '';
+  
+  const variants = {
+    primary: 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg',
     secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
     outline: 'bg-white text-gray-700 border-2 border-gray-200 hover:border-orange-300',
-  }[variant];
+  };
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseClass} ${variantClass}`}
+      className={`${base} ${width} ${variants[variant]}`}
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
-          <svg className="animate-spin h-5 w-5\" viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-              fill="none"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
           Carregando...
         </span>
@@ -214,6 +198,10 @@ export function InputField({
   required = false,
   prefix,
 }: InputFieldProps) {
+  const inputBase = 'w-full px-4 py-3 rounded-xl border-2 text-gray-900 transition-colors duration-200 focus:outline-none focus:border-orange-500';
+  const inputPadding = prefix ? 'pl-8' : '';
+  const inputBorder = error ? 'border-red-300' : 'border-gray-200';
+
   return (
     <div className="space-y-1">
       <label className="block text-sm font-medium text-gray-700">
@@ -232,13 +220,7 @@ export function InputField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`
-            w-full px-4 py-3 rounded-xl border-2 text-gray-900
-            transition-colors duration-200
-            focus:outline-none focus:border-orange-500
-            ${prefix ? 'pl-8' : ''}
-            ${error ? 'border-red-300' : 'border-gray-200'}
-          `}
+          className={`${inputBase} ${inputPadding} ${inputBorder}`}
         />
       </div>
 

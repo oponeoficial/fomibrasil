@@ -50,9 +50,6 @@ export function useOnboarding(): UseOnboardingReturn {
   // Validação por step
   const canContinue = useMemo(() => {
     switch (step) {
-      case 'welcome':
-        return true;
-
       case 'signup':
         return (
           data.firstName.trim().length >= 2 &&
