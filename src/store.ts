@@ -1,72 +1,64 @@
+/**
+ * FOMÍ - Store Unificado
+ * 
+ * Estado global da aplicação usando Zustand.
+ * Persistência apenas para dados de onboarding.
+ * 
+ * USO: 
+ *   import { useStore } from '@/store';
+ *   const user = useStore(s => s.user);
+ *   const { setUser, isGuest } = useStore();
+ */
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useShallow } from 'zustand/react/shallow';
 import type { User } from '@supabase/supabase-js';
-import type { Restaurant, TabId } from './types';
+import type { Restaurant, TabId, UserLocation, UserPreferences, OnboardingStep } from './types';
 
 // ============================================================================
-// TYPES
-// ============================================================================
-
-interface Location {
-  latitude: number;
-  longitude: number;
-  city?: string;
-}
-
-interface Preferences {
-  company: string[];
-  mood: string[];
-  restrictions: string[];
-  budget: string | null;
-}
-
-type OnboardingStep = 'welcome' | 'location' | 'preferences' | 'completed';
-
-// ============================================================================
-// STORE STATE INTERFACE
+// STATE INTERFACE
 // ============================================================================
 
 interface StoreState {
-  // === AUTH ===
+  // Auth
   user: User | null;
   loading: boolean;
 
-  // === UI / APP ===
+  // UI
   activeTab: TabId;
   sidebarOpen: boolean;
   filterOpen: boolean;
   selectedRestaurant: Restaurant | null;
-  savedRestaurants: number[];
+  savedRestaurants: string[]; // IDs dos restaurantes salvos localmente
   selectedFilters: string[];
   searchQuery: string;
 
-  // === ONBOARDING (persisted) ===
+  // Onboarding (persistido)
   onboardingStep: OnboardingStep;
-  onboardingLocation: Location | null;
-  onboardingPreferences: Preferences;
+  onboardingLocation: UserLocation | null;
+  onboardingPreferences: UserPreferences;
 }
 
 interface StoreActions {
-  // === AUTH ACTIONS ===
+  // Auth
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   isGuest: () => boolean;
 
-  // === UI / APP ACTIONS ===
+  // UI
   setActiveTab: (tab: TabId) => void;
   setSidebarOpen: (open: boolean) => void;
   setFilterOpen: (open: boolean) => void;
   setSelectedRestaurant: (restaurant: Restaurant | null) => void;
-  toggleSavedRestaurant: (id: number) => void;
+  toggleSavedRestaurant: (id: string) => void;
   setSelectedFilters: (filters: string[]) => void;
   toggleFilter: (filterId: string) => void;
   setSearchQuery: (query: string) => void;
 
-  // === ONBOARDING ACTIONS ===
+  // Onboarding
   setOnboardingStep: (step: OnboardingStep) => void;
-  setOnboardingLocation: (location: Location) => void;
-  setOnboardingPreferences: (prefs: Partial<Preferences>) => void;
+  setOnboardingLocation: (location: UserLocation) => void;
+  setOnboardingPreferences: (prefs: Partial<UserPreferences>) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
 }
@@ -74,10 +66,10 @@ interface StoreActions {
 type Store = StoreState & StoreActions;
 
 // ============================================================================
-// INITIAL STATE
+// INITIAL VALUES
 // ============================================================================
 
-const initialPreferences: Preferences = {
+const initialPreferences: UserPreferences = {
   company: [],
   mood: [],
   restrictions: [],
@@ -85,49 +77,17 @@ const initialPreferences: Preferences = {
 };
 
 // ============================================================================
-// MIGRATION: Migrar dados do localStorage antigo
-// ============================================================================
-
-const migrateOldOnboardingData = (): Partial<StoreState> | null => {
-  try {
-    const oldData = localStorage.getItem('fomi-onboarding');
-    if (!oldData) return null;
-
-    const parsed = JSON.parse(oldData);
-    if (!parsed?.state) return null;
-
-    const { step, location, preferences } = parsed.state;
-    
-    // Remover dados antigos após migração
-    localStorage.removeItem('fomi-onboarding');
-    
-    console.log('[Fomi Store] Migrated onboarding data from old format');
-    
-    return {
-      onboardingStep: step || 'welcome',
-      onboardingLocation: location || null,
-      onboardingPreferences: preferences || initialPreferences,
-    };
-  } catch {
-    return null;
-  }
-};
-
-// Executar migração antes de criar o store
-const migratedData = migrateOldOnboardingData();
-
-// ============================================================================
-// UNIFIED STORE
+// STORE
 // ============================================================================
 
 export const useStore = create<Store>()(
   persist(
     (set, get) => ({
-      // ========== AUTH STATE ==========
+      // === AUTH STATE ===
       user: null,
       loading: true,
 
-      // ========== UI / APP STATE ==========
+      // === UI STATE ===
       activeTab: 'home',
       sidebarOpen: false,
       filterOpen: false,
@@ -136,17 +96,17 @@ export const useStore = create<Store>()(
       selectedFilters: [],
       searchQuery: '',
 
-      // ========== ONBOARDING STATE (com migração) ==========
-      onboardingStep: migratedData?.onboardingStep ?? 'welcome',
-      onboardingLocation: migratedData?.onboardingLocation ?? null,
-      onboardingPreferences: migratedData?.onboardingPreferences ?? initialPreferences,
+      // === ONBOARDING STATE ===
+      onboardingStep: 'welcome',
+      onboardingLocation: null,
+      onboardingPreferences: initialPreferences,
 
-      // ========== AUTH ACTIONS ==========
+      // === AUTH ACTIONS ===
       setUser: (user) => set({ user }),
       setLoading: (loading) => set({ loading }),
       isGuest: () => get().user === null,
 
-      // ========== UI / APP ACTIONS ==========
+      // === UI ACTIONS ===
       setActiveTab: (tab) => set({ activeTab: tab }),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setFilterOpen: (open) => set({ filterOpen: open }),
@@ -170,7 +130,7 @@ export const useStore = create<Store>()(
 
       setSearchQuery: (query) => set({ searchQuery: query }),
 
-      // ========== ONBOARDING ACTIONS ==========
+      // === ONBOARDING ACTIONS ===
       setOnboardingStep: (step) => set({ onboardingStep: step }),
 
       setOnboardingLocation: (location) =>
@@ -192,68 +152,29 @@ export const useStore = create<Store>()(
     }),
     {
       name: 'fomi-store',
-      // Persistir apenas dados de onboarding
       partialize: (state) => ({
         onboardingStep: state.onboardingStep,
         onboardingLocation: state.onboardingLocation,
         onboardingPreferences: state.onboardingPreferences,
+        savedRestaurants: state.savedRestaurants,
       }),
     }
   )
 );
 
 // ============================================================================
-// COMPATIBILITY HOOKS (mantém API antiga funcionando)
+// SELECTORS (para uso com shallow comparison)
 // ============================================================================
 
-// Interfaces para os hooks de compatibilidade
-interface AuthSlice {
-  user: User | null;
-  loading: boolean;
-  setUser: (user: User | null) => void;
-  setLoading: (loading: boolean) => void;
-  isGuest: () => boolean;
-}
-
-interface AppSlice {
-  activeTab: TabId;
-  sidebarOpen: boolean;
-  filterOpen: boolean;
-  selectedRestaurant: Restaurant | null;
-  savedRestaurants: number[];
-  selectedFilters: string[];
-  searchQuery: string;
-  setActiveTab: (tab: TabId) => void;
-  setSidebarOpen: (open: boolean) => void;
-  setFilterOpen: (open: boolean) => void;
-  setSelectedRestaurant: (restaurant: Restaurant | null) => void;
-  toggleSavedRestaurant: (id: number) => void;
-  setSelectedFilters: (filters: string[]) => void;
-  toggleFilter: (filterId: string) => void;
-  setSearchQuery: (query: string) => void;
-}
-
-interface OnboardingSlice {
-  step: OnboardingStep;
-  location: Location | null;
-  preferences: Preferences;
-  setStep: (step: OnboardingStep) => void;
-  setLocation: (location: Location) => void;
-  setPreferences: (prefs: Partial<Preferences>) => void;
-  completeOnboarding: () => void;
-  reset: () => void;
-}
-
-// Seletores otimizados (definidos uma vez, reutilizados)
-const authSelector = (state: Store): AuthSlice => ({
+/** Selector para dados de auth */
+export const selectAuth = (state: Store) => ({
   user: state.user,
   loading: state.loading,
-  setUser: state.setUser,
-  setLoading: state.setLoading,
   isGuest: state.isGuest,
 });
 
-const appSelector = (state: Store): AppSlice => ({
+/** Selector para UI state */
+export const selectUI = (state: Store) => ({
   activeTab: state.activeTab,
   sidebarOpen: state.sidebarOpen,
   filterOpen: state.filterOpen,
@@ -261,62 +182,33 @@ const appSelector = (state: Store): AppSlice => ({
   savedRestaurants: state.savedRestaurants,
   selectedFilters: state.selectedFilters,
   searchQuery: state.searchQuery,
-  setActiveTab: state.setActiveTab,
-  setSidebarOpen: state.setSidebarOpen,
-  setFilterOpen: state.setFilterOpen,
-  setSelectedRestaurant: state.setSelectedRestaurant,
-  toggleSavedRestaurant: state.toggleSavedRestaurant,
-  setSelectedFilters: state.setSelectedFilters,
-  toggleFilter: state.toggleFilter,
-  setSearchQuery: state.setSearchQuery,
 });
 
-const onboardingSelector = (state: Store): OnboardingSlice => ({
+/** Selector para onboarding */
+export const selectOnboarding = (state: Store) => ({
   step: state.onboardingStep,
   location: state.onboardingLocation,
   preferences: state.onboardingPreferences,
-  setStep: state.setOnboardingStep,
-  setLocation: state.setOnboardingLocation,
-  setPreferences: state.setOnboardingPreferences,
-  completeOnboarding: state.completeOnboarding,
-  reset: state.resetOnboarding,
 });
 
-/**
- * @deprecated Use useStore directly. Mantido para compatibilidade.
- * Suporta: useAuthStore((s) => s.user) OU const { user } = useAuthStore()
- */
-export function useAuthStore(): AuthSlice;
-export function useAuthStore<T>(selector: (state: AuthSlice) => T): T;
-export function useAuthStore<T>(selector?: (state: AuthSlice) => T) {
-  const slice = useStore(useShallow(authSelector));
-  return selector ? selector(slice) : slice;
-}
-
-/**
- * @deprecated Use useStore directly. Mantido para compatibilidade.
- * Suporta: useAppStore((s) => s.activeTab) OU const { activeTab } = useAppStore()
- */
-export function useAppStore(): AppSlice;
-export function useAppStore<T>(selector: (state: AppSlice) => T): T;
-export function useAppStore<T>(selector?: (state: AppSlice) => T) {
-  const slice = useStore(useShallow(appSelector));
-  return selector ? selector(slice) : slice;
-}
-
-/**
- * @deprecated Use useStore directly. Mantido para compatibilidade.
- * Suporta: useOnboardingStore((s) => s.step) OU const { step } = useOnboardingStore()
- */
-export function useOnboardingStore(): OnboardingSlice;
-export function useOnboardingStore<T>(selector: (state: OnboardingSlice) => T): T;
-export function useOnboardingStore<T>(selector?: (state: OnboardingSlice) => T) {
-  const slice = useStore(useShallow(onboardingSelector));
-  return selector ? selector(slice) : slice;
-}
-
 // ============================================================================
-// TYPE EXPORTS (para uso externo)
+// HOOKS DE COMPATIBILIDADE (para migração gradual)
 // ============================================================================
 
-export type { Location, Preferences, OnboardingStep };
+/**
+ * Hook de compatibilidade para código legado.
+ * DEPRECATED: Use useStore diretamente.
+ * 
+ * @example
+ * // Antigo (ainda funciona):
+ * const user = useAuthStore(s => s.user);
+ * 
+ * // Novo (preferido):
+ * const user = useStore(s => s.user);
+ */
+export const useAuthStore = useStore;
+export const useAppStore = useStore;
+export const useOnboardingStore = useStore;
+
+// Type exports para compatibilidade
+export type { UserLocation as Location, UserPreferences as Preferences, OnboardingStep };

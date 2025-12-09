@@ -1,6 +1,12 @@
-import { useState } from 'react';
+/**
+ * FOMÍ - Feed Page (Refatorado)
+ * 
+ * Usa dados reais do Supabase.
+ * Migrado de inline styles para Tailwind.
+ */
+
 import { useNavigate } from 'react-router-dom';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Loader2 } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { BottomNavigation } from '../components/layout/BottomNavigation';
 import { Sidebar } from '../components/layout/Sidebar';
@@ -8,33 +14,34 @@ import { FilterPanel } from '../components/layout/FilterPanel';
 import { RestaurantCard } from '../components/restaurant/RestaurantCard';
 import { RestaurantDetails } from '../components/restaurant/RestaurantDetails';
 import { Profile } from '../components/profile/Profile';
-import { mockRestaurants } from '../data/mockData';
+import { useFeedRestaurants } from '../hooks/useRestaurants';
 import { getGreeting, getContextualMessage } from '../utils/helpers';
-import { useAuthStore, useAppStore } from '../stores';
+import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
-import type { Restaurant } from '../types';
 
 export default function Feed() {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const isGuest = useAuthStore((s) => s.isGuest());
   
-  const {
-    activeTab,
-    setActiveTab,
-    sidebarOpen,
-    setSidebarOpen,
-    filterOpen,
-    setFilterOpen,
-    selectedRestaurant,
-    setSelectedRestaurant,
-    savedRestaurants,
-    toggleSavedRestaurant,
-    selectedFilters,
-    toggleFilter,
-    searchQuery,
-    setSearchQuery,
-  } = useAppStore();
+  // Store state
+  const user = useStore(s => s.user);
+  const isGuest = useStore(s => s.isGuest());
+  const activeTab = useStore(s => s.activeTab);
+  const setActiveTab = useStore(s => s.setActiveTab);
+  const sidebarOpen = useStore(s => s.sidebarOpen);
+  const setSidebarOpen = useStore(s => s.setSidebarOpen);
+  const filterOpen = useStore(s => s.filterOpen);
+  const setFilterOpen = useStore(s => s.setFilterOpen);
+  const selectedRestaurant = useStore(s => s.selectedRestaurant);
+  const setSelectedRestaurant = useStore(s => s.setSelectedRestaurant);
+  const savedRestaurants = useStore(s => s.savedRestaurants);
+  const toggleSavedRestaurant = useStore(s => s.toggleSavedRestaurant);
+  const selectedFilters = useStore(s => s.selectedFilters);
+  const toggleFilter = useStore(s => s.toggleFilter);
+  const searchQuery = useStore(s => s.searchQuery);
+  const setSearchQuery = useStore(s => s.setSearchQuery);
+
+  // Busca restaurantes reais
+  const { restaurants, loading, error, refresh } = useFeedRestaurants(searchQuery, selectedFilters);
 
   const userName = user?.user_metadata?.full_name || 'Visitante';
 
@@ -44,7 +51,7 @@ export default function Feed() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-cream)', fontFamily: 'var(--font-sans)' }}>
+    <div className="min-h-screen bg-cream font-sans">
       <Header
         onMenuClick={() => setSidebarOpen(true)}
         onFilterClick={() => setFilterOpen(!filterOpen)}
@@ -72,12 +79,7 @@ export default function Feed() {
         }}
       />
 
-      <main style={{
-        paddingTop: 'calc(var(--header-height) + 16px)',
-        paddingBottom: '90px',
-        paddingLeft: activeTab === 'profile' ? '0' : '16px',
-        paddingRight: activeTab === 'profile' ? '0' : '16px',
-      }}>
+      <main className={`pt-[calc(60px+16px)] pb-[90px] ${activeTab === 'profile' ? 'px-0' : 'px-4'}`}>
         {activeTab === 'profile' && (
           <Profile
             user={user ? { name: userName, email: user.email } : null}
@@ -94,34 +96,15 @@ export default function Feed() {
 
         {activeTab === 'home' && (
           <>
+            {/* Banner de preferências para guests */}
             {isGuest && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '16px',
-                padding: '12px 16px',
-                backgroundColor: '#fff',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-soft)',
-              }}>
-                <p style={{ fontSize: '0.9rem', color: 'var(--color-dark)', fontWeight: 500 }}>
+              <div className="flex items-center justify-between mb-4 p-3 bg-white rounded-2xl shadow-soft">
+                <p className="text-sm text-dark font-medium">
                   Baseado no que você nos contou…
                 </p>
                 <button
                   onClick={() => navigate('/onboarding/preferences')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    backgroundColor: 'var(--color-light-gray)',
-                    border: 'none',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.8rem',
-                    color: 'var(--color-gray)',
-                    cursor: 'pointer',
-                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-light-gray rounded-full text-xs text-gray font-medium"
                 >
                   <Settings2 size={14} />
                   Ajustar
@@ -129,52 +112,60 @@ export default function Feed() {
               </div>
             )}
 
+            {/* Greeting para usuários logados */}
             {!isGuest && (
-              <div style={{
-                position: 'relative',
-                height: '180px',
-                borderRadius: 'var(--radius-lg)',
-                overflow: 'hidden',
-                marginBottom: '24px',
-              }}>
-                <img
-                  src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80"
-                  alt="Restaurant ambiance"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(2px) brightness(0.7)' }}
-                />
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.2))',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '20px',
-                }}>
-                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginBottom: '4px' }}>
-                    {getGreeting()}, {userName}
-                  </p>
-                  <h2 style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-display)' }}>
-                    {getContextualMessage()}
-                  </h2>
-                </div>
+              <div className="mb-4">
+                <p className="text-sm text-gray mb-1">{getGreeting()}, {userName.split(' ')[0]}!</p>
+                <h2 className="text-xl font-display font-bold text-dark">
+                  {getContextualMessage()}
+                </h2>
               </div>
             )}
 
+            {/* Título para guests */}
             {isGuest && (
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                color: 'var(--color-dark)',
-                marginBottom: '16px',
-              }}>
+              <h2 className="text-xl font-display font-bold text-dark mb-4">
                 Aqui estão algumas sugestões…
               </h2>
             )}
 
+            {/* Loading state */}
+            {loading && restaurants.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 size={32} className="text-red animate-spin mb-4" />
+                <p className="text-gray text-sm">Carregando restaurantes...</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {error && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <span className="text-4xl mb-4">😕</span>
+                <p className="text-dark font-semibold mb-2">Ops! Algo deu errado</p>
+                <p className="text-gray text-sm mb-4">{error}</p>
+                <button
+                  onClick={refresh}
+                  className="px-4 py-2 bg-red text-white rounded-lg text-sm font-medium"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && !error && restaurants.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <span className="text-4xl mb-4">🍽️</span>
+                <p className="text-dark font-semibold mb-2">Nenhum restaurante encontrado</p>
+                <p className="text-gray text-sm">
+                  {searchQuery ? 'Tente ajustar sua busca' : 'Volte mais tarde para novas sugestões'}
+                </p>
+              </div>
+            )}
+
+            {/* Restaurant list */}
             <div>
-              {mockRestaurants.map((restaurant) => (
+              {restaurants.map((restaurant) => (
                 <RestaurantCard
                   key={restaurant.id}
                   restaurant={restaurant}
@@ -184,31 +175,29 @@ export default function Feed() {
                 />
               ))}
             </div>
+
+            {/* Loading more indicator */}
+            {loading && restaurants.length > 0 && (
+              <div className="flex justify-center py-4">
+                <Loader2 size={24} className="text-red animate-spin" />
+              </div>
+            )}
           </>
         )}
 
+        {/* Placeholder para outras tabs */}
         {activeTab !== 'home' && activeTab !== 'profile' && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '60vh',
-            color: 'var(--color-gray)',
-            textAlign: 'center',
-            padding: '20px',
-          }}>
-            <span style={{ fontSize: '3rem', marginBottom: '16px' }}>🚧</span>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '8px', color: 'var(--color-dark)' }}>
-              Em breve!
-            </h3>
-            <p style={{ fontSize: '0.9rem' }}>Esta seção está sendo desenvolvida.</p>
+          <div className="flex flex-col items-center justify-center h-[60vh] text-center px-5">
+            <span className="text-5xl mb-4">🚧</span>
+            <h3 className="text-lg font-semibold text-dark mb-2">Em breve!</h3>
+            <p className="text-sm text-gray">Esta seção está sendo desenvolvida.</p>
           </div>
         )}
       </main>
 
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
+      {/* Restaurant Details Modal */}
       {selectedRestaurant && (
         <RestaurantDetails
           restaurant={selectedRestaurant}
