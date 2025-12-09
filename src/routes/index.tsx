@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense, ReactNode } from 'react';
 
-// Loading component inline
+// Loading component
 const Loading = () => (
   <div
     style={{
@@ -16,19 +16,18 @@ const Loading = () => (
   </div>
 );
 
-// Onboarding - importa diretamente dos componentes
+// Onboarding
 const Welcome = lazy(() => import('../components/onboarding/Welcome'));
-const Location = lazy(() => import('../components/onboarding/Location'));
-const Preferences = lazy(() => import('../components/onboarding/Preferences'));
+const Onboarding = lazy(() => import('../components/onboarding/Onboarding'));
 
-// Auth - importa diretamente dos componentes
-const Login = lazy(() => import('../components/auth/Login'));
-const Signup = lazy(() => import('../components/auth/Signup'));
+// Auth - usando wrappers do AuthForm unificado
+const Login = lazy(() => import('../components/auth/AuthForm').then(m => ({ default: m.Login })));
+const Signup = lazy(() => import('../components/auth/AuthForm').then(m => ({ default: m.Signup })));
 
-// App - mantém pages para componentes que precisam de lógica adicional
+// App
 const Feed = lazy(() => import('../pages/Feed'));
 
-// Saved - importa diretamente do componente
+// Saved
 const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants'));
 
 // Wrapper com Suspense
@@ -42,8 +41,11 @@ const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<a
 export const router = createBrowserRouter([
   // Onboarding
   { path: '/', element: withSuspense(Welcome) },
-  { path: '/onboarding/location', element: withSuspense(Location) },
-  { path: '/onboarding/preferences', element: withSuspense(Preferences) },
+  { path: '/onboarding', element: withSuspense(Onboarding) },
+  
+  // Legacy routes - redirect to unified onboarding
+  { path: '/onboarding/location', element: <Navigate to="/onboarding" replace /> },
+  { path: '/onboarding/preferences', element: <Navigate to="/onboarding" replace /> },
 
   // Auth
   { path: '/login', element: withSuspense(Login) },

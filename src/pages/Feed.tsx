@@ -3,14 +3,13 @@
  * 
  * Usa dados reais do Supabase.
  * Migrado de inline styles para Tailwind.
+ * Atualizado para usar Layout unificado.
  */
 
 import { useNavigate } from 'react-router-dom';
 import { Settings2, Loader2 } from 'lucide-react';
-import { Header } from '../components/layout/Header';
-import { BottomNavigation } from '../components/layout/BottomNavigation';
-import { Sidebar } from '../components/layout/Sidebar';
-import { FilterPanel } from '../components/layout/FilterPanel';
+// Layout unificado - import de arquivo único
+import { Header, BottomNavigation, Sidebar, FilterPanel } from '../components/layout/Layout';
 import { RestaurantCard } from '../components/restaurant/RestaurantCard';
 import { RestaurantDetails } from '../components/restaurant/RestaurantDetails';
 import { Profile } from '../components/profile/Profile';
@@ -21,27 +20,30 @@ import { supabase } from '../lib/supabase';
 
 export default function Feed() {
   const navigate = useNavigate();
-  
+
   // Store state
-  const user = useStore(s => s.user);
-  const isGuest = useStore(s => s.isGuest());
-  const activeTab = useStore(s => s.activeTab);
-  const setActiveTab = useStore(s => s.setActiveTab);
-  const sidebarOpen = useStore(s => s.sidebarOpen);
-  const setSidebarOpen = useStore(s => s.setSidebarOpen);
-  const filterOpen = useStore(s => s.filterOpen);
-  const setFilterOpen = useStore(s => s.setFilterOpen);
-  const selectedRestaurant = useStore(s => s.selectedRestaurant);
-  const setSelectedRestaurant = useStore(s => s.setSelectedRestaurant);
-  const savedRestaurants = useStore(s => s.savedRestaurants);
-  const toggleSavedRestaurant = useStore(s => s.toggleSavedRestaurant);
-  const selectedFilters = useStore(s => s.selectedFilters);
-  const toggleFilter = useStore(s => s.toggleFilter);
-  const searchQuery = useStore(s => s.searchQuery);
-  const setSearchQuery = useStore(s => s.setSearchQuery);
+  const user = useStore((s) => s.user);
+  const isGuest = useStore((s) => s.isGuest());
+  const activeTab = useStore((s) => s.activeTab);
+  const setActiveTab = useStore((s) => s.setActiveTab);
+  const sidebarOpen = useStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useStore((s) => s.setSidebarOpen);
+  const filterOpen = useStore((s) => s.filterOpen);
+  const setFilterOpen = useStore((s) => s.setFilterOpen);
+  const selectedRestaurant = useStore((s) => s.selectedRestaurant);
+  const setSelectedRestaurant = useStore((s) => s.setSelectedRestaurant);
+  const savedRestaurants = useStore((s) => s.savedRestaurants);
+  const toggleSavedRestaurant = useStore((s) => s.toggleSavedRestaurant);
+  const selectedFilters = useStore((s) => s.selectedFilters);
+  const toggleFilter = useStore((s) => s.toggleFilter);
+  const searchQuery = useStore((s) => s.searchQuery);
+  const setSearchQuery = useStore((s) => s.setSearchQuery);
 
   // Busca restaurantes reais
-  const { restaurants, loading, error, refresh } = useFeedRestaurants(searchQuery, selectedFilters);
+  const { restaurants, loading, error, refresh } = useFeedRestaurants(
+    searchQuery,
+    selectedFilters
+  );
 
   const userName = user?.user_metadata?.full_name || 'Visitante';
 
@@ -79,7 +81,11 @@ export default function Feed() {
         }}
       />
 
-      <main className={`pt-[calc(60px+16px)] pb-[90px] ${activeTab === 'profile' ? 'px-0' : 'px-4'}`}>
+      <main
+        className={`pt-[calc(60px+16px)] pb-[90px] ${
+          activeTab === 'profile' ? 'px-0' : 'px-4'
+        }`}
+      >
         {activeTab === 'profile' && (
           <Profile
             user={user ? { name: userName, email: user.email } : null}
@@ -115,7 +121,9 @@ export default function Feed() {
             {/* Greeting para usuários logados */}
             {!isGuest && (
               <div className="mb-4">
-                <p className="text-sm text-gray mb-1">{getGreeting()}, {userName.split(' ')[0]}!</p>
+                <p className="text-sm text-gray mb-1">
+                  {getGreeting()}, {userName.split(' ')[0]}!
+                </p>
                 <h2 className="text-xl font-display font-bold text-dark">
                   {getContextualMessage()}
                 </h2>
@@ -156,9 +164,13 @@ export default function Feed() {
             {!loading && !error && restaurants.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <span className="text-4xl mb-4">🍽️</span>
-                <p className="text-dark font-semibold mb-2">Nenhum restaurante encontrado</p>
+                <p className="text-dark font-semibold mb-2">
+                  Nenhum restaurante encontrado
+                </p>
                 <p className="text-gray text-sm">
-                  {searchQuery ? 'Tente ajustar sua busca' : 'Volte mais tarde para novas sugestões'}
+                  {searchQuery
+                    ? 'Tente ajustar sua busca'
+                    : 'Volte mais tarde para novas sugestões'}
                 </p>
               </div>
             )}
