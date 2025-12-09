@@ -1,32 +1,25 @@
 /**
  * FOMÍ - Email Confirm Step (Tela 8)
- * Confirmação de e-mail com reenvio
+ * Confirmação de e-mail - tela final
  */
 
-import { Mail, RefreshCw } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { STEP_CONTENT } from '../constants';
 import { CTAButton } from '../components/UI';
 
 interface EmailConfirmStepProps {
   email: string;
-  onResend: () => Promise<void>;
-  onSkip: () => void;
+  onResend?: () => Promise<void>;
+  onSkip?: () => void;
   onFinish: () => void;
-  loading: boolean;
+  loading?: boolean;
 }
 
 export function EmailConfirmStep({
   email,
-  onResend,
-  onSkip,
-  loading,
+  onFinish,
 }: EmailConfirmStepProps) {
   const content = STEP_CONTENT.emailConfirm;
-
-  const openEmailApp = () => {
-    // Tentar abrir app de e-mail genérico
-    window.open('mailto:', '_blank');
-  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
@@ -57,44 +50,16 @@ export function EmailConfirmStep({
           </p>
           <p style={{ fontWeight: 600, color: '#111827', marginBottom: '8px' }}>{email}</p>
           <p style={{ color: '#6B7280' }}>
-            Abra o e-mail e clique em "Confirmar minha conta" pra começar a usar a FOMÍ de verdade.
+            Confirme seu e-mail e faça login para começar a usar a FOMÍ.
           </p>
         </div>
       </div>
 
-      {/* CTAs */}
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <CTAButton onClick={openEmailApp} variant="primary">
-          {content.cta}
+      {/* CTA único */}
+      <div style={{ padding: '24px' }}>
+        <CTAButton onClick={onFinish} variant="primary">
+          Ir para login
         </CTAButton>
-
-        <CTAButton 
-          onClick={onResend} 
-          variant="outline"
-          loading={loading}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <RefreshCw style={{ width: '16px', height: '16px' }} />
-            {content.resendCta}
-          </span>
-        </CTAButton>
-
-        <button
-          type="button"
-          onClick={onSkip}
-          style={{ 
-            width: '100%', 
-            textAlign: 'center', 
-            fontSize: '14px', 
-            color: '#6B7280', 
-            padding: '8px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          {content.skipCta}
-        </button>
       </div>
     </div>
   );

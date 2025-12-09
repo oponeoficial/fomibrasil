@@ -81,12 +81,8 @@ export function Onboarding() {
     }
   };
 
-  const handleSkipEmail = () => {
-    navigate('/feed');
-  };
-
   const handleFinish = () => {
-    navigate('/feed');
+    navigate('/login');
   };
 
   const renderStep = () => {
@@ -130,10 +126,7 @@ export function Onboarding() {
         return (
           <EmailConfirmStep
             email={data.email}
-            onResend={resendEmail}
-            onSkip={handleSkipEmail}
             onFinish={handleFinish}
-            loading={loading}
           />
         );
 
