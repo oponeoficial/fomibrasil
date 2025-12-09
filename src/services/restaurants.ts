@@ -1,19 +1,17 @@
 /**
- * FOMÍ - Serviço de Restaurantes
+ * FOMÍ - Serviço de Restaurantes (Limpo)
  * 
  * Busca dados reais do Supabase.
- * Substitui mockData.ts.
  */
 
 import { supabase } from '../lib/supabase';
 import type { Restaurant, RestaurantTag } from '../types';
 import type { Tables } from '../lib/supabase';
 
-// Tipo do banco
 type DbRestaurant = Tables<'restaurants'>;
 
 // ============================================================================
-// TIPOS INTERNOS
+// TIPOS
 // ============================================================================
 
 interface FetchOptions {
@@ -26,81 +24,62 @@ interface FetchOptions {
 }
 
 // ============================================================================
-// CONVERSORES
+// HELPERS (privados)
 // ============================================================================
 
-/** Gera tags visuais a partir dos dados */
-function generateTags(
-  cuisineType: string | null | undefined,
-  priceRange: number | null,
-  occasion: string | null
-): RestaurantTag[] {
+const PLACEHOLDER_IMAGES: Record<string, string> = {
+  'Japonesa': 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80',
+  'Italiana': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+  'Brasileira': 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
+  'Hamburgueria': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
+  'Pizzaria': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80',
+  'Bar e Boteco': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
+  'Carnes': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
+  'Portuguesa': 'https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=800&q=80',
+  'Contemporanea': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+  'default': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+};
+
+function getPlaceholderImage(cuisineType: string | null | undefined): string {
+  if (!cuisineType) return PLACEHOLDER_IMAGES.default;
+  
+  for (const [key, url] of Object.entries(PLACEHOLDER_IMAGES)) {
+    if (cuisineType.toLowerCase().includes(key.toLowerCase())) {
+      return url;
+    }
+  }
+  return PLACEHOLDER_IMAGES.default;
+}
+
+function generateTags(cuisineTypes: string[] | null, priceRange: number | null): RestaurantTag[] {
   const tags: RestaurantTag[] = [];
   
-  if (cuisineType) {
-    const mainType = cuisineType.split(',')[0].trim();
-    tags.push({ text: mainType, color: 'red' });
+  if (cuisineTypes?.[0]) {
+    tags.push({ text: cuisineTypes[0], color: 'red' });
   }
   
   if (priceRange) {
     tags.push({ text: '$'.repeat(priceRange), color: 'green' });
   }
   
-  if (occasion) {
-    const mainOccasion = occasion.split(',')[0].trim();
-    if (mainOccasion.length < 20) {
-      tags.push({ text: mainOccasion, color: 'purple' });
-    }
-  }
-  
   return tags.slice(0, 3);
 }
 
-/** Imagem placeholder por tipo de cozinha */
-function getPlaceholderImage(cuisineType: string | null | undefined): string {
-  const images: Record<string, string> = {
-    'Japonesa': 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80',
-    'Italiana': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
-    'Brasileira': 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
-    'Hamburgueria': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
-    'Pizzaria': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80',
-    'Bar e Boteco': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
-    'Carnes': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
-    'Portuguesa': 'https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=800&q=80',
-    'Contemporanea': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
-    'default': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
-  };
-  
-  if (!cuisineType) return images.default;
-  
-  for (const [key, url] of Object.entries(images)) {
-    if (cuisineType.toLowerCase().includes(key.toLowerCase())) {
-      return url;
-    }
-  }
-  
-  return images.default;
-}
-
-/** Converte row do Supabase para Restaurant */
 function rowToRestaurant(row: DbRestaurant): Restaurant {
-  const priceRange = row.price_range;
-  const cuisineType = row.cuisine_types?.[0] ?? null;
-  
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    image: row.cover_image || getPlaceholderImage(cuisineType),
+    image: row.cover_image || getPlaceholderImage(row.cuisine_types?.[0]),
     gallery: row.gallery || [],
     description: row.description,
     longDescription: row.long_description,
-    tags: generateTags(cuisineType, priceRange, null),
+    tags: generateTags(row.cuisine_types, row.price_range),
     rating: row.rating_avg ? Number(row.rating_avg) : 4.0 + Math.random() * 0.9,
     reviewCount: row.reviews_count || Math.floor(Math.random() * 100) + 10,
     distance: null,
-    price: priceRange ? '$'.repeat(priceRange) : null,
-    priceRange,
+    price: row.price_range ? '$'.repeat(row.price_range) : null,
+    priceRange: row.price_range,
     address: row.address,
     neighborhood: row.neighborhood,
     city: row.city,
@@ -159,7 +138,7 @@ export async function fetchRestaurants(options: FetchOptions = {}): Promise<Rest
     return [];
   }
   
-  return (data || []).map(row => rowToRestaurant(row));
+  return (data || []).map(rowToRestaurant);
 }
 
 /**
@@ -236,7 +215,8 @@ export async function fetchNeighborhoods(city: string = 'Recife'): Promise<strin
 }
 
 /**
- * Busca restaurantes próximos (fallback para fetchRestaurants)
+ * Busca restaurantes próximos
+ * TODO: Implementar com PostGIS quando RPC estiver configurado
  */
 export async function fetchNearbyRestaurants(options: {
   latitude: number;
@@ -244,6 +224,6 @@ export async function fetchNearbyRestaurants(options: {
   radiusKm?: number;
   limit?: number;
 }): Promise<Restaurant[]> {
-  // Fallback: usa busca normal já que PostGIS RPC não está configurado
+  // Fallback para busca normal até PostGIS RPC estar pronto
   return fetchRestaurants({ limit: options.limit || 20 });
 }

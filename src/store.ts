@@ -1,8 +1,7 @@
 /**
- * FOMÍ - Store Unificado
+ * FOMÍ - Store Unificado (Limpo)
  * 
  * Estado global da aplicação usando Zustand.
- * Persistência apenas para dados de onboarding.
  * 
  * USO: 
  *   import { useStore } from '@/store';
@@ -13,7 +12,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '@supabase/supabase-js';
-import type { Restaurant, TabId, UserLocation, UserPreferences, OnboardingStep } from './types';
+import type { Restaurant, TabId } from './types';
 
 // ============================================================================
 // STATE INTERFACE
@@ -29,14 +28,9 @@ interface StoreState {
   sidebarOpen: boolean;
   filterOpen: boolean;
   selectedRestaurant: Restaurant | null;
-  savedRestaurants: string[]; // IDs dos restaurantes salvos localmente
+  savedRestaurants: string[];
   selectedFilters: string[];
   searchQuery: string;
-
-  // Onboarding (persistido)
-  onboardingStep: OnboardingStep;
-  onboardingLocation: UserLocation | null;
-  onboardingPreferences: UserPreferences;
 }
 
 interface StoreActions {
@@ -54,27 +48,9 @@ interface StoreActions {
   setSelectedFilters: (filters: string[]) => void;
   toggleFilter: (filterId: string) => void;
   setSearchQuery: (query: string) => void;
-
-  // Onboarding
-  setOnboardingStep: (step: OnboardingStep) => void;
-  setOnboardingLocation: (location: UserLocation) => void;
-  setOnboardingPreferences: (prefs: Partial<UserPreferences>) => void;
-  completeOnboarding: () => void;
-  resetOnboarding: () => void;
 }
 
 type Store = StoreState & StoreActions;
-
-// ============================================================================
-// INITIAL VALUES
-// ============================================================================
-
-const initialPreferences: UserPreferences = {
-  company: [],
-  mood: [],
-  restrictions: [],
-  budget: null,
-};
 
 // ============================================================================
 // STORE
@@ -95,11 +71,6 @@ export const useStore = create<Store>()(
       savedRestaurants: [],
       selectedFilters: [],
       searchQuery: '',
-
-      // === ONBOARDING STATE ===
-      onboardingStep: 'welcome',
-      onboardingLocation: null,
-      onboardingPreferences: initialPreferences,
 
       // === AUTH ACTIONS ===
       setUser: (user) => set({ user }),
@@ -129,33 +100,10 @@ export const useStore = create<Store>()(
         })),
 
       setSearchQuery: (query) => set({ searchQuery: query }),
-
-      // === ONBOARDING ACTIONS ===
-      setOnboardingStep: (step) => set({ onboardingStep: step }),
-
-      setOnboardingLocation: (location) =>
-        set({ onboardingLocation: location, onboardingStep: 'preferences' }),
-
-      setOnboardingPreferences: (prefs) =>
-        set((state) => ({
-          onboardingPreferences: { ...state.onboardingPreferences, ...prefs },
-        })),
-
-      completeOnboarding: () => set({ onboardingStep: 'completed' }),
-
-      resetOnboarding: () =>
-        set({
-          onboardingStep: 'welcome',
-          onboardingLocation: null,
-          onboardingPreferences: initialPreferences,
-        }),
     }),
     {
       name: 'fomi-store',
       partialize: (state) => ({
-        onboardingStep: state.onboardingStep,
-        onboardingLocation: state.onboardingLocation,
-        onboardingPreferences: state.onboardingPreferences,
         savedRestaurants: state.savedRestaurants,
       }),
     }
@@ -163,17 +111,15 @@ export const useStore = create<Store>()(
 );
 
 // ============================================================================
-// SELECTORS (para uso com shallow comparison)
+// SELECTORS
 // ============================================================================
 
-/** Selector para dados de auth */
 export const selectAuth = (state: Store) => ({
   user: state.user,
   loading: state.loading,
   isGuest: state.isGuest,
 });
 
-/** Selector para UI state */
 export const selectUI = (state: Store) => ({
   activeTab: state.activeTab,
   sidebarOpen: state.sidebarOpen,
@@ -184,31 +130,8 @@ export const selectUI = (state: Store) => ({
   searchQuery: state.searchQuery,
 });
 
-/** Selector para onboarding */
-export const selectOnboarding = (state: Store) => ({
-  step: state.onboardingStep,
-  location: state.onboardingLocation,
-  preferences: state.onboardingPreferences,
-});
-
 // ============================================================================
-// HOOKS DE COMPATIBILIDADE (para migração gradual)
+// ALIASES (compatibilidade - usar useStore diretamente)
 // ============================================================================
 
-/**
- * Hook de compatibilidade para código legado.
- * DEPRECATED: Use useStore diretamente.
- * 
- * @example
- * // Antigo (ainda funciona):
- * const user = useAuthStore(s => s.user);
- * 
- * // Novo (preferido):
- * const user = useStore(s => s.user);
- */
 export const useAuthStore = useStore;
-export const useAppStore = useStore;
-export const useOnboardingStore = useStore;
-
-// Type exports para compatibilidade
-export type { UserLocation as Location, UserPreferences as Preferences, OnboardingStep };
