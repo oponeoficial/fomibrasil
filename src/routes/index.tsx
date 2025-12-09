@@ -20,9 +20,8 @@ const Loading = () => (
 const Welcome = lazy(() => import('../components/onboarding/Welcome'));
 const Onboarding = lazy(() => import('../components/onboarding/Onboarding'));
 
-// Auth - usando wrappers do AuthForm unificado
-const Login = lazy(() => import('../components/auth/AuthForm').then(m => ({ default: m.Login })));
-const Signup = lazy(() => import('../components/auth/AuthForm').then(m => ({ default: m.Signup })));
+// Auth - apenas login (signup acontece no onboarding)
+const Login = lazy(() => import('../components/auth/AuthForm'));
 
 // App
 const Feed = lazy(() => import('../pages/Feed'));
@@ -43,13 +42,13 @@ export const router = createBrowserRouter([
   { path: '/', element: withSuspense(Welcome) },
   { path: '/onboarding', element: withSuspense(Onboarding) },
   
-  // Legacy routes - redirect to unified onboarding
+  // Legacy routes - redirect to new flow
   { path: '/onboarding/location', element: <Navigate to="/onboarding" replace /> },
   { path: '/onboarding/preferences', element: <Navigate to="/onboarding" replace /> },
+  { path: '/signup', element: <Navigate to="/onboarding" replace /> },
 
-  // Auth
+  // Auth - apenas login
   { path: '/login', element: withSuspense(Login) },
-  { path: '/signup', element: withSuspense(Signup) },
 
   // App
   { path: '/feed', element: withSuspense(Feed) },

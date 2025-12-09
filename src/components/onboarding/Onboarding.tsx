@@ -1,8 +1,7 @@
 /**
  * FOMÍ - Onboarding Unificado
  * 
- * Implementa passos 2-6 do documento de onboarding.
- * Passo 0 (Welcome) e 1 (Signup) são componentes separados.
+ * Fluxo: Welcome → Onboarding (todos os passos) → Cadastro → Feed
  * 
  * Steps internos:
  * 0 - Dados básicos (data nascimento, gênero, cidade, bairro)
@@ -10,12 +9,13 @@
  * 2 - Ocasiões favoritas  
  * 3 - Preferências finas (preço, vibe, estilo decisão)
  * 4 - Restrições alimentares
- * 5 - Permissões & fechamento
+ * 5 - Permissões
+ * 6 - Cadastro (email, senha, nome, username) - FINAL
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Loader2, Check, MapPin } from 'lucide-react';
+import { ChevronLeft, Loader2, Check, MapPin, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 // ============================================================================
@@ -52,11 +52,16 @@ interface OnboardingData {
   // Step 5 - Permissões
   aceita_notificacoes: boolean;
   aceita_experimentos: boolean;
+  // Step 6 - Cadastro
+  email: string;
+  password: string;
+  name: string;
+  username: string;
 }
 
-type StepId = 'dados' | 'cozinhas' | 'ocasioes' | 'preferencias' | 'restricoes' | 'permissoes';
+type StepId = 'dados' | 'cozinhas' | 'ocasioes' | 'preferencias' | 'restricoes' | 'permissoes' | 'cadastro';
 
-const STEPS: StepId[] = ['dados', 'cozinhas', 'ocasioes', 'preferencias', 'restricoes', 'permissoes'];
+const STEPS: StepId[] = ['dados', 'cozinhas', 'ocasioes', 'preferencias', 'restricoes', 'permissoes', 'cadastro'];
 
 const STEP_CONFIG: Record<StepId, { title: string; subtitle: string }> = {
   dados: {
@@ -82,6 +87,10 @@ const STEP_CONFIG: Record<StepId, { title: string; subtitle: string }> = {
   permissoes: {
     title: 'Tudo pronto pra comer bem com a FOMÍ',
     subtitle: 'Usamos o que você contou pra te sugerir lugares com a sua cara.',
+  },
+  cadastro: {
+    title: 'Já temos suas recomendações prontas!',
+    subtitle: 'Faça seu cadastro e aproveite!',
   },
 };
 
@@ -118,6 +127,7 @@ export const Onboarding: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Tags from DB
   const [cuisineTags, setCuisineTags] = useState<Tag[]>([]);
@@ -141,6 +151,10 @@ export const Onboarding: React.FC = () => {
     sem_restricoes: false,
     aceita_notificacoes: true,
     aceita_experimentos: false,
+    email: '',
+    password: '',
+    name: '',
+    username: '',
   });
 
   const stepId = STEPS[currentStep];
@@ -212,6 +226,8 @@ export const Onboarding: React.FC = () => {
         return data.sem_restricoes || data.restricoes_alimentares.length >= 1;
       case 'permissoes':
         return true;
+      case 'cadastro':
+        return !!(data.email && data.password.length >= 8 && data.name && data.username);
       default:
         return false;
     }
@@ -221,7 +237,7 @@ export const Onboarding: React.FC = () => {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
     } else {
-      navigate('/signup');
+      navigate('/');
     }
   };
 
@@ -263,16 +279,57 @@ export const Onboarding: React.FC = () => {
     setSaving(true);
     setError(null);
 
+    const cleanUsername = data.username.toLowerCase().replace(/[^a-z0-9_]/g, '');
+
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user) {
-        navigate('/login');
+      // 0. Verificar se username já existe
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', cleanUsername)
+        .maybeSingle();
+
+      if (existingUser) {
+        setError('Este nome de usuário já está em uso. Escolha outro.');
+        setSaving(false);
         return;
       }
 
+      // 1. Criar usuário
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            username: cleanUsername,
+            full_name: data.name,
+          },
+        },
+      });
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          setError('Este e-mail já está cadastrado');
+        } else {
+          console.error('Signup error:', authError);
+          setError('Erro ao criar conta. Tente novamente.');
+        }
+        setSaving(false);
+        return;
+      }
+
+      if (!authData.user) {
+        setError('Erro ao criar conta. Tente novamente.');
+        setSaving(false);
+        return;
+      }
+
+      // 2. Salvar dados do onboarding no profile
       const age = data.data_nascimento ? calculateAge(data.data_nascimento) : null;
 
       const updatePayload: Record<string, unknown> = {
+        full_name: data.name,
+        username: cleanUsername,
         data_nascimento: data.data_nascimento || null,
         idade: age,
         faixa_etaria: age ? getAgeRange(age) : null,
@@ -296,13 +353,16 @@ export const Onboarding: React.FC = () => {
       const { error: updateError } = await supabase
         .from('profiles')
         .update(updatePayload)
-        .eq('id', userData.user.id);
+        .eq('id', authData.user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
+        // Não bloqueia - usuário foi criado, pode atualizar depois
+      }
 
       navigate('/feed');
     } catch (err) {
-      console.error('Error saving onboarding:', err);
+      console.error('Error in onboarding:', err);
       setError('Erro ao salvar. Tente novamente.');
     } finally {
       setSaving(false);
@@ -667,6 +727,96 @@ export const Onboarding: React.FC = () => {
     </div>
   );
 
+  const renderCadastroStep = () => (
+    <div className="space-y-5">
+      {/* Ícone de sucesso */}
+      <div className="flex justify-center mb-4">
+        <div className="w-20 h-20 rounded-full bg-red/10 flex items-center justify-center">
+          <span className="text-4xl">🎉</span>
+        </div>
+      </div>
+
+      {/* Nome */}
+      <div>
+        <label className="block text-sm font-medium text-dark mb-2">
+          Como podemos te chamar?
+        </label>
+        <input
+          type="text"
+          value={data.name}
+          onChange={(e) => setData((prev) => ({ ...prev, name: e.target.value }))}
+          placeholder="Seu nome completo"
+          className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none"
+        />
+      </div>
+
+      {/* Username */}
+      <div>
+        <label className="block text-sm font-medium text-dark mb-2">
+          Seu nome de perfil
+        </label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray text-base">@</span>
+          <input
+            type="text"
+            value={data.username}
+            onChange={(e) => setData((prev) => ({ 
+              ...prev, 
+              username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') 
+            }))}
+            placeholder="seunome"
+            className="w-full p-3.5 pl-8 border border-gray/30 rounded-lg text-base bg-white outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Email */}
+      <div>
+        <label className="block text-sm font-medium text-dark mb-2">
+          Seu e-mail
+        </label>
+        <input
+          type="email"
+          value={data.email}
+          onChange={(e) => setData((prev) => ({ ...prev, email: e.target.value }))}
+          placeholder="voce@exemplo.com"
+          className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none"
+        />
+      </div>
+
+      {/* Senha */}
+      <div>
+        <label className="block text-sm font-medium text-dark mb-2">
+          Crie uma senha
+        </label>
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={data.password}
+            onChange={(e) => setData((prev) => ({ ...prev, password: e.target.value }))}
+            placeholder="Mínimo 8 caracteres"
+            className="w-full p-3.5 pr-12 border border-gray/30 rounded-lg text-base bg-white outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-gray"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+        <p className="text-xs text-gray mt-1">Mínimo de 8 caracteres</p>
+      </div>
+
+      {/* Terms */}
+      <p className="text-xs text-gray text-center leading-relaxed">
+        Ao criar conta, você concorda com nossos{' '}
+        <a href="#" className="text-red">Termos de Uso</a> e{' '}
+        <a href="#" className="text-red">Política de Privacidade</a>.
+      </p>
+    </div>
+  );
+
   const renderCurrentStep = () => {
     switch (stepId) {
       case 'dados':
@@ -681,6 +831,8 @@ export const Onboarding: React.FC = () => {
         return renderRestricoesStep();
       case 'permissoes':
         return renderPermissoesStep();
+      case 'cadastro':
+        return renderCadastroStep();
       default:
         return null;
     }
@@ -771,10 +923,10 @@ export const Onboarding: React.FC = () => {
             {saving ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Salvando...
+                Criando conta...
               </>
             ) : isLastStep ? (
-              'Ir para o meu feed'
+              'Criar conta e entrar'
             ) : (
               'Continuar'
             )}

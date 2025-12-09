@@ -9,7 +9,8 @@ interface WelcomeProps {
 export const Welcome: React.FC<WelcomeProps> = ({ onStart, onLogin }) => {
   const navigate = useNavigate();
 
-  const handleStart = onStart ?? (() => navigate('/onboarding/location'));
+  // "Criar conta" agora vai para onboarding (cadastro acontece no final)
+  const handleStart = onStart ?? (() => navigate('/onboarding'));
   const handleLogin = onLogin ?? (() => navigate('/login'));
 
   return (
