@@ -33,8 +33,15 @@ export function StyleStep({
 }: StyleStepProps) {
   const content = STEP_CONTENT.style;
 
+  const sectionTitleStyle: React.CSSProperties = {
+    fontWeight: 600,
+    color: '#111827',
+    fontSize: '16px',
+    marginBottom: '12px',
+  };
+
   return (
-    <div className="space-y-8">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -45,8 +52,8 @@ export function StyleStep({
       />
 
       {/* Seção 1: Frequência (seleção única) */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-gray-900">
+      <div style={{ marginBottom: '32px' }}>
+        <h3 style={sectionTitleStyle}>
           {content.frequencyQuestion}
         </h3>
         <SingleSelect
@@ -57,12 +64,12 @@ export function StyleStep({
       </div>
 
       {/* Seção 2: Tipo de lugar (2-5) */}
-      <div className="space-y-3">
-        <div>
-          <h3 className="font-semibold text-gray-900">
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{ marginBottom: '12px' }}>
+          <h3 style={sectionTitleStyle}>
             {content.placeTypeQuestion}
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p style={{ fontSize: '14px', color: '#6B7280' }}>
             {content.placeTypeHelper}
           </p>
         </div>
@@ -76,8 +83,8 @@ export function StyleStep({
       </div>
 
       {/* Seção 3: Estilo de decisão (1-2) */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-gray-900">
+      <div>
+        <h3 style={sectionTitleStyle}>
           {content.decisionQuestion}
         </h3>
         <ChipSelector

@@ -1,12 +1,14 @@
 /**
  * FOMÍ - Signup Step (Tela 1)
+ * Visual consistente com AuthForm
  */
 
 import { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import type { OnboardingData } from '../types';
 import { STEP_CONTENT, USERNAME_REGEX, USERNAME_HELP, PASSWORD_MIN_LENGTH } from '../constants';
-import { StepHeader, InputField } from '../components/UI';
+import { StepHeader } from '../components/UI';
 
 interface SignupStepProps {
   data: OnboardingData;
@@ -29,6 +31,7 @@ export function SignupStep({
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Debounced username check
   useEffect(() => {
@@ -75,15 +78,39 @@ export function SignupStep({
   const passwordStrength = () => {
     const len = data.password.length;
     if (len === 0) return null;
-    if (len < PASSWORD_MIN_LENGTH) return { label: 'Muito curta', color: 'text-red-500' };
-    if (len < 12) return { label: 'Ok', color: 'text-yellow-500' };
-    return { label: 'Forte', color: 'text-green-500' };
+    if (len < PASSWORD_MIN_LENGTH) return { label: 'Muito curta', color: '#EF4444' };
+    if (len < 12) return { label: 'Ok', color: '#CA8A04' };
+    return { label: 'Forte', color: '#16A34A' };
   };
 
   const strength = passwordStrength();
 
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '14px',
+    fontWeight: 500,
+    color: '#1F2937',
+    marginBottom: '8px',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '14px',
+    border: '2px solid #E5E7EB',
+    borderRadius: '12px',
+    fontSize: '16px',
+    backgroundColor: '#FFFFFF',
+    outline: 'none',
+    color: '#111827',
+  };
+
+  const inputErrorStyle: React.CSSProperties = {
+    ...inputStyle,
+    borderColor: '#EF4444',
+  };
+
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -93,65 +120,131 @@ export function SignupStep({
         totalSteps={totalSteps}
       />
 
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <InputField
-            label="Nome"
-            value={data.firstName}
-            onChange={(v) => updateData({ firstName: v })}
-            placeholder="Seu primeiro nome"
-            required
-          />
-          <InputField
-            label="Sobrenome"
-            value={data.lastName}
-            onChange={(v) => updateData({ lastName: v })}
-            placeholder="Seu sobrenome"
-            required
-          />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Nome e Sobrenome */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label style={labelStyle}>
+              Nome <span style={{ color: '#F97316' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={data.firstName}
+              onChange={(e) => updateData({ firstName: e.target.value })}
+              placeholder="Seu primeiro nome"
+              style={inputStyle}
+              onFocus={(e) => e.target.style.borderColor = '#F97316'}
+              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>
+              Sobrenome <span style={{ color: '#F97316' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={data.lastName}
+              onChange={(e) => updateData({ lastName: e.target.value })}
+              placeholder="Seu sobrenome"
+              style={inputStyle}
+              onFocus={(e) => e.target.style.borderColor = '#F97316'}
+              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+            />
+          </div>
         </div>
 
-        <InputField
-          label="Nome de usuário"
-          value={data.username}
-          onChange={(v) => updateData({ username: v.toLowerCase().replace(/[^a-z0-9._]/g, '') })}
-          placeholder="seunome"
-          prefix="@"
-          helper={checkingUsername ? 'Verificando...' : USERNAME_HELP}
-          error={usernameError || undefined}
-          required
-        />
+        {/* Username */}
+        <div>
+          <label style={labelStyle}>
+            Nome de usuário <span style={{ color: '#F97316' }}>*</span>
+          </label>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}>@</span>
+            <input
+              type="text"
+              value={data.username}
+              onChange={(e) => updateData({ username: e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '') })}
+              placeholder="seunome"
+              style={{ ...inputStyle, paddingLeft: '32px', borderColor: usernameError ? '#EF4444' : '#E5E7EB' }}
+              onFocus={(e) => e.target.style.borderColor = '#F97316'}
+              onBlur={(e) => e.target.style.borderColor = usernameError ? '#EF4444' : '#E5E7EB'}
+            />
+          </div>
+          <p style={{ fontSize: '12px', color: usernameError ? '#EF4444' : '#6B7280', marginTop: '4px' }}>
+            {checkingUsername ? 'Verificando...' : usernameError || USERNAME_HELP}
+          </p>
+        </div>
 
-        <InputField
-          label="E-mail"
-          value={data.email}
-          onChange={(v) => updateData({ email: v })}
-          placeholder="seu@email.com"
-          type="email"
-          error={emailError || undefined}
-          required
-        />
-
-        <div className="space-y-1">
-          <InputField
-            label="Senha"
-            value={data.password}
-            onChange={(v) => updateData({ password: v })}
-            placeholder="Mínimo 8 caracteres"
-            type="password"
-            helper={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres`}
-            required
+        {/* Email */}
+        <div>
+          <label style={labelStyle}>
+            E-mail <span style={{ color: '#F97316' }}>*</span>
+          </label>
+          <input
+            type="email"
+            value={data.email}
+            onChange={(e) => updateData({ email: e.target.value })}
+            placeholder="seu@email.com"
+            style={emailError ? inputErrorStyle : inputStyle}
+            onFocus={(e) => e.target.style.borderColor = '#F97316'}
+            onBlur={(e) => e.target.style.borderColor = emailError ? '#EF4444' : '#E5E7EB'}
           />
-          {strength && (
-            <p className={`text-xs ${strength.color}`}>
-              Força: {strength.label}
-            </p>
-          )}
+          {emailError && <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{emailError}</p>}
+        </div>
+
+        {/* Senha */}
+        <div>
+          <label style={labelStyle}>
+            Senha <span style={{ color: '#F97316' }}>*</span>
+          </label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={data.password}
+              onChange={(e) => updateData({ password: e.target.value })}
+              placeholder="Mínimo 8 caracteres"
+              style={{ ...inputStyle, paddingRight: '48px' }}
+              onFocus={(e) => e.target.style.borderColor = '#F97316'}
+              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{ 
+                position: 'absolute', 
+                right: '12px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer', 
+                color: '#9CA3AF' 
+              }}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+            <p style={{ fontSize: '12px', color: '#6B7280' }}>Mínimo {PASSWORD_MIN_LENGTH} caracteres</p>
+            {strength && (
+              <p style={{ fontSize: '12px', color: strength.color }}>
+                {strength.label}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
       {error && (
-        <p className="text-sm text-red-500 text-center bg-red-50 p-3 rounded-lg">
+        <p style={{ 
+          fontSize: '14px', 
+          color: '#EF4444', 
+          textAlign: 'center', 
+          backgroundColor: '#FEF2F2', 
+          padding: '12px', 
+          borderRadius: '8px',
+          marginTop: '16px',
+        }}>
           {error}
         </p>
       )}

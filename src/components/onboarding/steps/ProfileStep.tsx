@@ -25,6 +25,7 @@ export function ProfileStep({
   totalSteps,
   onBack,
   onRequestLocation,
+  error,
 }: ProfileStepProps) {
   const content = STEP_CONTENT.profile;
 
@@ -36,8 +37,27 @@ export function ProfileStep({
     await onRequestLocation();
   };
 
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '14px',
+    fontWeight: 500,
+    color: '#374151',
+    marginBottom: '8px',
+  };
+
+  const selectStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: '2px solid #E5E7EB',
+    backgroundColor: '#FFFFFF',
+    color: '#111827',
+    fontSize: '16px',
+    outline: 'none',
+  };
+
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -47,7 +67,7 @@ export function ProfileStep({
         totalSteps={totalSteps}
       />
 
-      <div className="space-y-5">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Data de nascimento */}
         <InputField
           label="Data de nascimento"
@@ -58,9 +78,9 @@ export function ProfileStep({
         />
 
         {/* Gênero */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Gênero <span className="text-gray-400">(opcional)</span>
+        <div>
+          <label style={labelStyle}>
+            Gênero <span style={{ color: '#9CA3AF' }}>(opcional)</span>
           </label>
           <ChipSelector
             options={GENDER_OPTIONS}
@@ -71,14 +91,16 @@ export function ProfileStep({
         </div>
 
         {/* Cidade */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Em que cidade você mora hoje? <span className="text-orange-500">*</span>
+        <div>
+          <label style={labelStyle}>
+            Em que cidade você mora hoje? <span style={{ color: '#F97316' }}>*</span>
           </label>
           <select
             value={data.city}
             onChange={(e) => updateData({ city: e.target.value })}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-900 focus:outline-none focus:border-orange-500"
+            style={selectStyle}
+            onFocus={(e) => e.target.style.borderColor = '#F97316'}
+            onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
           >
             <option value="">Selecione sua cidade</option>
             {CITIES.map((city) => (
@@ -97,22 +119,34 @@ export function ProfileStep({
         />
 
         {/* Permissão de localização */}
-        <div className="bg-orange-50 rounded-2xl p-4 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-orange-500" />
+        <div style={{ 
+          backgroundColor: '#FFF7ED', 
+          borderRadius: '16px', 
+          padding: '16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              backgroundColor: '#FFEDD5', 
+              borderRadius: '12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center' 
+            }}>
+              <MapPin style={{ width: '20px', height: '20px', color: '#F97316' }} />
             </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900">
+            <div style={{ flex: 1 }}>
+              <h4 style={{ fontWeight: 600, color: '#111827', fontSize: '16px' }}>
                 {content.locationTitle}
               </h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>
                 {content.locationText}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: '8px' }}>
             <CTAButton
               onClick={handleLocationRequest}
               variant={data.locationPermission ? 'secondary' : 'primary'}
@@ -126,13 +160,26 @@ export function ProfileStep({
             <button
               type="button"
               onClick={() => updateData({ locationPermission: false })}
-              className="text-sm text-gray-500 hover:text-gray-700 w-full text-center"
+              style={{ 
+                fontSize: '14px', 
+                color: '#6B7280', 
+                width: '100%', 
+                textAlign: 'center', 
+                marginTop: '8px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               Agora não
             </button>
           )}
         </div>
       </div>
+
+      {error && (
+        <p style={{ fontSize: '14px', color: '#EF4444', textAlign: 'center', marginTop: '16px' }}>{error}</p>
+      )}
     </div>
   );
 }

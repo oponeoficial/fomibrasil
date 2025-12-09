@@ -19,7 +19,6 @@ export function EmailConfirmStep({
   email,
   onResend,
   onSkip,
-  onFinish,
   loading,
 }: EmailConfirmStepProps) {
   const content = STEP_CONTENT.emailConfirm;
@@ -30,32 +29,41 @@ export function EmailConfirmStep({
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+    <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
         {/* Ícone */}
-        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-6">
-          <Mail className="w-10 h-10 text-orange-500" />
+        <div style={{ 
+          width: '80px', 
+          height: '80px', 
+          backgroundColor: '#FFEDD5', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          marginBottom: '24px' 
+        }}>
+          <Mail style={{ width: '40px', height: '40px', color: '#F97316' }} />
         </div>
 
         {/* Título */}
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-4">
+        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px' }}>
           {content.title}
         </h1>
 
         {/* Texto */}
-        <div className="text-center space-y-2 max-w-xs">
-          <p className="text-gray-600">
+        <div style={{ textAlign: 'center', maxWidth: '320px' }}>
+          <p style={{ color: '#6B7280', marginBottom: '8px' }}>
             Enviamos um e-mail para
           </p>
-          <p className="font-semibold text-gray-900">{email}</p>
-          <p className="text-gray-600">
+          <p style={{ fontWeight: 600, color: '#111827', marginBottom: '8px' }}>{email}</p>
+          <p style={{ color: '#6B7280' }}>
             Abra o e-mail e clique em "Confirmar minha conta" pra começar a usar a FOMÍ de verdade.
           </p>
         </div>
       </div>
 
       {/* CTAs */}
-      <div className="p-6 space-y-3">
+      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <CTAButton onClick={openEmailApp} variant="primary">
           {content.cta}
         </CTAButton>
@@ -65,8 +73,8 @@ export function EmailConfirmStep({
           variant="outline"
           loading={loading}
         >
-          <span className="flex items-center justify-center gap-2">
-            <RefreshCw className="w-4 h-4" />
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <RefreshCw style={{ width: '16px', height: '16px' }} />
             {content.resendCta}
           </span>
         </CTAButton>
@@ -74,7 +82,16 @@ export function EmailConfirmStep({
         <button
           type="button"
           onClick={onSkip}
-          className="w-full text-center text-sm text-gray-500 hover:text-gray-700 py-2"
+          style={{ 
+            width: '100%', 
+            textAlign: 'center', 
+            fontSize: '14px', 
+            color: '#6B7280', 
+            padding: '8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+          }}
         >
           {content.skipCta}
         </button>

@@ -32,7 +32,7 @@ export function RestrictionsStep({
   };
 
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -42,27 +42,36 @@ export function RestrictionsStep({
         totalSteps={totalSteps}
       />
 
-      <div className="grid grid-cols-2 gap-2">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
         {RESTRICTION_OPTIONS.map((option) => {
           const isSelected = data.restrictions.includes(option.id);
           const isNone = option.id === 'none';
+
+          const chipStyle: React.CSSProperties = {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '14px 16px',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: 500,
+            transition: 'all 0.2s',
+            border: isSelected ? '2px solid #F97316' : '2px solid #E5E7EB',
+            backgroundColor: isSelected ? '#F97316' : '#FFFFFF',
+            color: isSelected ? '#FFFFFF' : '#374151',
+            boxShadow: isSelected ? '0 4px 12px rgba(249, 115, 22, 0.3)' : 'none',
+            cursor: 'pointer',
+            gridColumn: isNone ? 'span 2' : 'auto',
+          };
 
           return (
             <button
               key={option.id}
               type="button"
               onClick={() => handleToggle(option.id)}
-              className={`
-                flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium
-                transition-all duration-200 border-2
-                ${isNone ? 'col-span-2' : ''}
-                ${isSelected
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-md'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
-                }
-              `}
+              style={chipStyle}
             >
-              <span className="text-lg">{option.emoji}</span>
+              <span style={{ fontSize: '18px' }}>{option.emoji}</span>
               <span>{option.label}</span>
             </button>
           );

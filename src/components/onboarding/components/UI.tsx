@@ -1,9 +1,9 @@
 /**
  * FOMÍ - Onboarding UI Components
- * StepHeader, ProgressBar, StepContainer
+ * Visual consistente com AuthForm
  */
 
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 
 // ============================================================================
 // PROGRESS BAR
@@ -18,9 +18,9 @@ export function ProgressBar({ current, total }: ProgressBarProps) {
   const progress = ((current + 1) / total) * 100;
 
   return (
-    <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+    <div className="w-full h-1 bg-gray/20 rounded-full overflow-hidden">
       <div
-        className="h-full bg-orange-500 transition-all duration-300"
+        className="h-full bg-red transition-all duration-300"
         style={{ width: `${progress}%` }}
       />
     </div>
@@ -38,6 +38,7 @@ interface StepHeaderProps {
   onBack?: () => void;
   stepIndex?: number;
   totalSteps?: number;
+  showLogo?: boolean;
 }
 
 export function StepHeader({
@@ -47,22 +48,22 @@ export function StepHeader({
   onBack,
   stepIndex,
   totalSteps,
+  showLogo = false,
 }: StepHeaderProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Top bar com voltar + progress */}
       <div className="flex items-center gap-4">
         {showBack && onBack ? (
           <button
             type="button"
             onClick={onBack}
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Voltar"
+            className="bg-transparent border-none cursor-pointer p-2 -ml-2"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-600" />
+            <ChevronLeft size={24} className="text-dark" />
           </button>
         ) : (
-          <div className="w-10" />
+          <div className="w-8" />
         )}
 
         {stepIndex !== undefined && totalSteps !== undefined && (
@@ -72,10 +73,17 @@ export function StepHeader({
         )}
       </div>
 
+      {/* Logo opcional */}
+      {showLogo && (
+        <div className="text-center">
+          <img src="/images/logo-fomi.png" alt="Fomí" className="w-[100px] h-auto mx-auto" />
+        </div>
+      )}
+
       {/* Título e subtítulo */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-        {subtitle && <p className="text-gray-600">{subtitle}</p>}
+        <h1 className="text-2xl font-display font-bold text-dark">{title}</h1>
+        {subtitle && <p className="text-sm text-gray">{subtitle}</p>}
       </div>
     </div>
   );
@@ -91,9 +99,9 @@ interface StepContainerProps {
 
 export function StepContainer({ children }: StepContainerProps) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-cream flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-md mx-auto px-4 py-6">
+        <div className="max-w-md mx-auto p-6">
           {children}
         </div>
       </div>
@@ -122,13 +130,15 @@ export function CTAButton({
   variant = 'primary',
   fullWidth = true,
 }: CTAButtonProps) {
-  const base = 'py-4 px-6 rounded-xl font-semibold text-base transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'py-4 px-6 border-none rounded-md text-base font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all duration-200';
   const width = fullWidth ? 'w-full' : '';
   
   const variants = {
-    primary: 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg',
-    secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-    outline: 'bg-white text-gray-700 border-2 border-gray-200 hover:border-orange-300',
+    primary: disabled || loading
+      ? 'bg-light-gray text-gray cursor-not-allowed'
+      : 'bg-red text-white shadow-[0_4px_15px_rgba(255,59,48,0.3)] hover:bg-red/90',
+    secondary: 'bg-light-gray text-dark hover:bg-gray/20',
+    outline: 'bg-transparent text-red border-2 border-red hover:bg-red/5',
   };
 
   return (
@@ -139,13 +149,10 @@ export function CTAButton({
       className={`${base} ${width} ${variants[variant]}`}
     >
       {loading ? (
-        <span className="flex items-center justify-center gap-2">
-          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+        <>
+          <Loader2 size={18} className="animate-spin" />
           Carregando...
-        </span>
+        </>
       ) : (
         children
       )}
@@ -163,7 +170,7 @@ interface FixedFooterProps {
 
 export function FixedFooter({ children }: FixedFooterProps) {
   return (
-    <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 shadow-lg">
+    <div className="sticky bottom-0 bg-cream border-t border-gray/10 p-4">
       <div className="max-w-md mx-auto space-y-3">
         {children}
       </div>
@@ -198,20 +205,16 @@ export function InputField({
   required = false,
   prefix,
 }: InputFieldProps) {
-  const inputBase = 'w-full px-4 py-3 rounded-xl border-2 text-gray-900 transition-colors duration-200 focus:outline-none focus:border-orange-500';
-  const inputPadding = prefix ? 'pl-8' : '';
-  const inputBorder = error ? 'border-red-300' : 'border-gray-200';
-
   return (
-    <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-dark">
         {label}
-        {required && <span className="text-orange-500 ml-1">*</span>}
+        {required && <span className="text-red ml-1">*</span>}
       </label>
 
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray">
             {prefix}
           </span>
         )}
@@ -220,16 +223,58 @@ export function InputField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`${inputBase} ${inputPadding} ${inputBorder}`}
+          className={`w-full p-3.5 border rounded-lg text-base bg-white outline-none transition-colors ${prefix ? 'pl-8' : ''} ${error ? 'border-red' : 'border-gray/30 focus:border-red'}`}
         />
       </div>
 
       {helper && !error && (
-        <p className="text-xs text-gray-500">{helper}</p>
+        <p className="text-xs text-gray">{helper}</p>
       )}
       {error && (
-        <p className="text-xs text-red-500">{error}</p>
+        <p className="text-xs text-red">{error}</p>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// SELECT FIELD
+// ============================================================================
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  placeholder?: string;
+  required?: boolean;
+}
+
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = 'Selecione...',
+  required = false,
+}: SelectFieldProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-dark">
+        {label}
+        {required && <span className="text-red ml-1">*</span>}
+      </label>
+
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none focus:border-red appearance-none cursor-pointer"
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
     </div>
   );
 }

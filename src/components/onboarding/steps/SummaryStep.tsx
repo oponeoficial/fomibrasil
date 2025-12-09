@@ -41,8 +41,22 @@ export function SummaryStep({
     .filter(Boolean)
     .slice(0, 3);
 
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: '#F9FAFB',
+    borderRadius: '16px',
+    padding: '16px',
+    marginBottom: '24px',
+  };
+
+  const rowStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '12px',
+    fontSize: '14px',
+  };
+
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -53,21 +67,21 @@ export function SummaryStep({
       />
 
       {/* Resumo */}
-      <div className="bg-gray-50 rounded-2xl p-4 space-y-4">
-        <h4 className="font-semibold text-gray-900">Seu perfil</h4>
+      <div style={cardStyle}>
+        <h4 style={{ fontWeight: 600, color: '#111827', marginBottom: '16px' }}>Seu perfil</h4>
 
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Cidade / Bairro</span>
-            <span className="text-gray-900 font-medium">
+        <div>
+          <div style={rowStyle}>
+            <span style={{ color: '#6B7280' }}>Cidade / Bairro</span>
+            <span style={{ color: '#111827', fontWeight: 500 }}>
               {data.city}, {data.neighborhood}
             </span>
           </div>
 
           {dislikedLabels.length > 0 && (
-            <div className="flex justify-between">
-              <span className="text-gray-500">Não curte</span>
-              <span className="text-gray-900 font-medium text-right">
+            <div style={rowStyle}>
+              <span style={{ color: '#6B7280' }}>Não curte</span>
+              <span style={{ color: '#111827', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
                 {dislikedLabels.join(', ')}
                 {data.dislikedCuisines.length > 3 && ` +${data.dislikedCuisines.length - 3}`}
               </span>
@@ -75,9 +89,9 @@ export function SummaryStep({
           )}
 
           {occasionLabels.length > 0 && (
-            <div className="flex justify-between">
-              <span className="text-gray-500">Ocasiões</span>
-              <span className="text-gray-900 font-medium text-right">
+            <div style={{ ...rowStyle, marginBottom: 0 }}>
+              <span style={{ color: '#6B7280' }}>Ocasiões</span>
+              <span style={{ color: '#111827', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
                 {occasionLabels.join(', ')}
                 {data.occasions.length > 3 && ` +${data.occasions.length - 3}`}
               </span>
@@ -87,41 +101,48 @@ export function SummaryStep({
       </div>
 
       {/* Toggles de consentimento */}
-      <div className="space-y-4">
+      <div style={{ marginBottom: '24px' }}>
         {/* Notificações */}
-        <label className="flex items-start gap-3 cursor-pointer">
-          <div className="pt-0.5">
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', marginBottom: '16px' }}>
+          <div style={{ paddingTop: '2px' }}>
             <input
               type="checkbox"
               checked={data.notificationsEnabled}
               onChange={(e) => updateData({ notificationsEnabled: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+              style={{ width: '20px', height: '20px', accentColor: '#F97316' }}
             />
           </div>
           <div>
-            <span className="font-medium text-gray-900">{content.notificationLabel}</span>
-            <p className="text-sm text-gray-500">{content.notificationHelper}</p>
+            <span style={{ fontWeight: 500, color: '#111827', display: 'block' }}>{content.notificationLabel}</span>
+            <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>{content.notificationHelper}</p>
           </div>
         </label>
 
         {/* Beta tester */}
-        <label className="flex items-start gap-3 cursor-pointer">
-          <div className="pt-0.5">
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
+          <div style={{ paddingTop: '2px' }}>
             <input
               type="checkbox"
               checked={data.betaTesterEnabled}
               onChange={(e) => updateData({ betaTesterEnabled: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+              style={{ width: '20px', height: '20px', accentColor: '#F97316' }}
             />
           </div>
-          <span className="font-medium text-gray-900">{content.betaLabel}</span>
+          <span style={{ fontWeight: 500, color: '#111827' }}>{content.betaLabel}</span>
         </label>
       </div>
 
       {/* Aviso do e-mail */}
-      <div className="flex items-start gap-3 bg-blue-50 rounded-xl p-4">
-        <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-blue-700">{content.emailWarning}</p>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'flex-start', 
+        gap: '12px', 
+        backgroundColor: '#EFF6FF', 
+        borderRadius: '12px', 
+        padding: '16px' 
+      }}>
+        <Info style={{ width: '20px', height: '20px', color: '#3B82F6', flexShrink: 0 }} />
+        <p style={{ fontSize: '14px', color: '#1D4ED8' }}>{content.emailWarning}</p>
       </div>
     </div>
   );

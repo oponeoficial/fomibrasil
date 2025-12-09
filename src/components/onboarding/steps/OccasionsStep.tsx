@@ -12,7 +12,6 @@ import {
 } from '../constants';
 import { StepHeader } from '../components/UI';
 import { ChipSelector } from '../components/ChipSelector';
-import { toggleChipSelection } from '../hooks/useOnboarding';
 
 interface OccasionsStepProps {
   data: OnboardingData;
@@ -41,7 +40,7 @@ export function OccasionsStep({
     data.occasions.length <= OCCASION_VALIDATION.max;
 
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -61,7 +60,7 @@ export function OccasionsStep({
       />
 
       {!isValid && data.occasions.length > 0 && (
-        <p className="text-sm text-orange-500 text-center">
+        <p style={{ fontSize: '14px', color: '#F97316', textAlign: 'center', marginTop: '16px' }}>
           Selecione entre {OCCASION_VALIDATION.min} e {OCCASION_VALIDATION.max} opções
         </p>
       )}

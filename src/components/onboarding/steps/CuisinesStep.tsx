@@ -31,7 +31,7 @@ export function CuisinesStep({
   };
 
   return (
-    <div className="space-y-6">
+    <div>
       <StepHeader
         title={content.title}
         subtitle={content.subtitle}
@@ -41,7 +41,15 @@ export function CuisinesStep({
         totalSteps={totalSteps}
       />
 
-      <p className="text-sm text-gray-500 text-center bg-gray-50 p-3 rounded-lg">
+      <p style={{ 
+        fontSize: '14px', 
+        color: '#6B7280', 
+        textAlign: 'center', 
+        backgroundColor: '#F9FAFB', 
+        padding: '12px', 
+        borderRadius: '8px',
+        marginBottom: '20px',
+      }}>
         {content.helper}
       </p>
 
@@ -53,7 +61,7 @@ export function CuisinesStep({
       />
 
       {data.dislikedCuisines.length > 0 && (
-        <p className="text-sm text-gray-500 text-center">
+        <p style={{ fontSize: '14px', color: '#6B7280', textAlign: 'center', marginTop: '16px' }}>
           {data.dislikedCuisines.length} cozinha(s) selecionada(s)
         </p>
       )}
