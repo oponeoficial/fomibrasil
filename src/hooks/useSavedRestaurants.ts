@@ -1,17 +1,16 @@
+/**
+ * FOMÍ - Hook de Restaurantes Salvos (Limpo)
+ * 
+ * Usa tipos centralizados de types/index.ts
+ * Derivados do schema Supabase.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import type { SavedList, SavedRestaurantRow, RestaurantTag } from '../types';
 
-export interface SavedList {
-  id: string;
-  name: string;
-  icon: string;
-  is_system: boolean;
-  system_type: string | null;
-  sort_order: number;
-}
-
+// Tipo para UI com campos parseados
 export interface SavedRestaurant {
-  notes: any;
   id: string;
   restaurant_id: string;
   list_id: string;
@@ -22,7 +21,7 @@ export interface SavedRestaurant {
   restaurant_price: string | null;
   restaurant_latitude: number | null;
   restaurant_longitude: number | null;
-  restaurant_tags: { text: string; color: string }[];
+  restaurant_tags: RestaurantTag[];
   personal_rating: number | null;
   personal_note: string | null;
   context_tags: string[];
@@ -33,10 +32,38 @@ export interface SavedRestaurant {
   created_at: string;
 }
 
-// Helper para chamadas RPC sem tipagem
+// Re-export para compatibilidade
+export type { SavedList };
+
+// Helper para chamadas RPC
 const rpc = async (fnName: string, params: Record<string, unknown>) => {
   return supabase.rpc(fnName as never, params as never);
 };
+
+// Converter row do banco para UI
+function toUI(row: SavedRestaurantRow): SavedRestaurant {
+  return {
+    id: row.id,
+    restaurant_id: row.restaurant_id,
+    list_id: row.list_id,
+    restaurant_name: row.restaurant_name,
+    restaurant_image: row.restaurant_image,
+    restaurant_address: row.restaurant_address,
+    restaurant_rating: row.restaurant_rating,
+    restaurant_price: row.restaurant_price,
+    restaurant_latitude: row.restaurant_latitude,
+    restaurant_longitude: row.restaurant_longitude,
+    restaurant_tags: (row.restaurant_tags as unknown as RestaurantTag[]) || [],
+    personal_rating: row.personal_rating,
+    personal_note: row.personal_note,
+    context_tags: row.context_tags || [],
+    visited: row.visited ?? false,
+    visited_at: row.visited_at,
+    visit_count: row.visit_count ?? 0,
+    reminder_enabled: row.reminder_enabled ?? false,
+    created_at: row.created_at ?? new Date().toISOString(),
+  };
+}
 
 export function useSavedRestaurants(userId: string | null) {
   const [lists, setLists] = useState<SavedList[]>([]);
@@ -67,18 +94,18 @@ export function useSavedRestaurants(userId: string | null) {
 
       // Se não tem listas, criar as padrão
       if (!listsData || listsData.length === 0) {
-        const { error: createError } = await rpc('create_default_lists_for_user', { 
-          p_user_id: userId 
+        const { error: createError } = await rpc('create_default_lists_for_user', {
+          p_user_id: userId,
         });
-        
+
         if (createError) throw createError;
-        
+
         const { data: newLists } = await supabase
           .from('saved_lists')
           .select('*')
           .eq('user_id', userId)
           .order('sort_order');
-        
+
         setLists(newLists || []);
       } else {
         setLists(listsData);
@@ -92,8 +119,7 @@ export function useSavedRestaurants(userId: string | null) {
         .order('created_at', { ascending: false });
 
       if (restaurantsError) throw restaurantsError;
-      setRestaurants(restaurantsData || []);
-
+      setRestaurants((restaurantsData || []).map(toUI));
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError('Erro ao carregar restaurantes salvos');
@@ -140,11 +166,7 @@ export function useSavedRestaurants(userId: string | null) {
     }
   };
 
-  const markAsVisited = async (
-    savedId: string,
-    rating: number,
-    moveToFavorites: boolean = false
-  ) => {
+  const markAsVisited = async (savedId: string, rating: number, moveToFavorites = false) => {
     if (!userId) return { success: false };
 
     try {
@@ -183,7 +205,7 @@ export function useSavedRestaurants(userId: string | null) {
     }
   };
 
-  const createList = async (name: string, icon: string = '📁') => {
+  const createList = async (name: string, icon = '📁') => {
     if (!userId) return { success: false };
 
     try {
@@ -241,7 +263,7 @@ export function useSavedRestaurants(userId: string | null) {
     }
   };
 
-  const toggleReminder = async (savedId: string, enabled: boolean, radius: number = 500) => {
+  const toggleReminder = async (savedId: string, enabled: boolean, radius = 500) => {
     if (!userId) return { success: false };
 
     try {
@@ -281,12 +303,12 @@ export function useSavedRestaurants(userId: string | null) {
   };
 
   const getRestaurantsByList = (listId: string) => {
-    return restaurants.filter(r => r.list_id === listId);
+    return restaurants.filter((r) => r.list_id === listId);
   };
 
   const getListCounts = () => {
     const counts: Record<string, number> = {};
-    restaurants.forEach(r => {
+    restaurants.forEach((r) => {
       counts[r.list_id] = (counts[r.list_id] || 0) + 1;
     });
     return counts;

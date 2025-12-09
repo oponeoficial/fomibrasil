@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense, ReactNode } from 'react';
 
+
 // Loading component
 const Loading = () => (
   <div
@@ -18,7 +19,7 @@ const Loading = () => (
 
 // Onboarding
 const Welcome = lazy(() => import('../components/onboarding/Welcome'));
-const Onboarding = lazy(() => import('../components/onboarding/Onboarding'));
+const Onboarding = lazy(() => import('../components/onboarding'));
 
 // Auth - apenas login (signup acontece no onboarding)
 const Login = lazy(() => import('../components/auth/AuthForm'));

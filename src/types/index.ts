@@ -114,6 +114,25 @@ export interface FilterChip {
 }
 
 // ============================================================================
+// TIPOS DE ONBOARDING
+// ============================================================================
+
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+  city?: string;
+}
+
+export interface UserPreferences {
+  company: string[];
+  mood: string[];
+  restrictions: string[];
+  budget: string | null;
+}
+
+export type OnboardingStep = 'welcome' | 'location' | 'preferences' | 'completed';
+
+// ============================================================================
 // TIPOS DE FUNCTIONS (Supabase RPC)
 // ============================================================================
 
