@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, Check } from 'lucide-react';
-import { useOnboardingStore } from '../../stores';
+import { useOnboardingStore } from '../../store';
 
 interface UserPreferences {
   company: string[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Navigation, Loader2, AlertCircle, Building2 } from 'lucide-react';
-import { useOnboardingStore } from '../../stores';
+import { useOnboardingStore } from '../../store';
 
 interface LocationProps {
   onComplete?: () => void;

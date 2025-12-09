@@ -6,7 +6,7 @@ const Loading = () => (
   <div
     style={{
       minHeight: '100vh',
-      backgroundColor: 'var(--color-cream)',
+      backgroundColor: '#FDFEE7',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -27,7 +27,6 @@ const Signup = lazy(() => import('../components/auth/Signup'));
 
 // App - mantém pages para componentes que precisam de lógica adicional
 const Feed = lazy(() => import('../pages/Feed'));
-const Profile = lazy(() => import('../pages/Profile'));
 
 // Saved - importa diretamente do componente
 const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants'));
@@ -52,7 +51,6 @@ export const router = createBrowserRouter([
 
   // App
   { path: '/feed', element: withSuspense(Feed) },
-  { path: '/profile', element: withSuspense(Profile) },
   { path: '/saved', element: withSuspense(SavedRestaurants) },
 
   // Fallback

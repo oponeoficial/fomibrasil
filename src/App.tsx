@@ -1,7 +1,7 @@
 import { RouterProvider } from 'react-router-dom';
 import { useEffect } from 'react';
 import { router } from './routes';
-import { useAuthStore } from './stores';
+import { useAuthStore } from './store';
 import { supabase } from './lib/supabase';
 import './styles/index.css';
 

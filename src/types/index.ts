@@ -222,3 +222,9 @@ function priceRangeToString(range: number | null): string | null {
   if (!range) return null;
   return '$'.repeat(range);
 }
+// ============================================================================
+// TIPOS DE FUNCTIONS (Supabase RPC)
+// ============================================================================
+
+/** Resultado da função nearby_restaurants */
+export type NearbyRestaurant = Database['public']['Functions']['nearby_restaurants']['Returns'][number];

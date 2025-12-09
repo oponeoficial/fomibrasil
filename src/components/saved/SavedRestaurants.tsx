@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useSavedRestaurants, SavedRestaurant } from '../../hooks/useSavedRestaurants';
-import { useAuthStore } from '../../stores';
+import { useAuthStore } from '../../store';
 
 interface SavedRestaurantsProps {
   userId?: string | null;

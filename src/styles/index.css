@@ -2,33 +2,6 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-:root {
-  /* Colors */
-  --color-red: #FF3B30;
-  --color-orange: #FF9500;
-  --color-cream: #FDFEE7;
-  --color-dark: #2C2C2C;
-  --color-gray: #8E8E93;
-  --color-light-gray: #F2F2F7;
-  
-  /* Typography */
-  --font-primary: 'Inter', sans-serif;
-  
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  
-  /* Border Radius */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-full: 9999px;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -42,18 +15,16 @@ html {
 }
 
 body {
-  font-family: var(--font-primary);
-  background-color: var(--color-cream);
-  color: var(--color-dark);
+  font-family: 'Inter', sans-serif;
+  background-color: #FDFEE7;
+  color: #2C2C2C;
   line-height: 1.5;
 }
 
-/* Prevent pull-to-refresh on mobile */
 html, body {
   overscroll-behavior: none;
 }
 
-/* Safe area for iOS */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
