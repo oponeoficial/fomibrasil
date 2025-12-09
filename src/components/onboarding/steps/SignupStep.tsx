@@ -121,36 +121,20 @@ export function SignupStep({
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Nome e Sobrenome */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div>
-            <label style={labelStyle}>
-              Nome <span style={{ color: '#F97316' }}>*</span>
-            </label>
-            <input
-              type="text"
-              value={data.firstName}
-              onChange={(e) => updateData({ firstName: e.target.value })}
-              placeholder="Seu primeiro nome"
-              style={inputStyle}
-              onFocus={(e) => e.target.style.borderColor = '#F97316'}
-              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>
-              Sobrenome <span style={{ color: '#F97316' }}>*</span>
-            </label>
-            <input
-              type="text"
-              value={data.lastName}
-              onChange={(e) => updateData({ lastName: e.target.value })}
-              placeholder="Seu sobrenome"
-              style={inputStyle}
-              onFocus={(e) => e.target.style.borderColor = '#F97316'}
-              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-            />
-          </div>
+        {/* Nome completo */}
+        <div>
+          <label style={labelStyle}>
+            Nome completo <span style={{ color: '#F97316' }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={data.firstName}
+            onChange={(e) => updateData({ firstName: e.target.value })}
+            placeholder="Seu nome completo"
+            style={inputStyle}
+            onFocus={(e) => e.target.style.borderColor = '#F97316'}
+            onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+          />
         </div>
 
         {/* Username */}
