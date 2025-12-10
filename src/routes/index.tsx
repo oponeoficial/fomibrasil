@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense, ReactNode } from 'react';
 
-
 // Loading component
 const Loading = () => (
   <div
@@ -30,6 +29,9 @@ const Feed = lazy(() => import('../pages/Feed'));
 // Saved
 const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants'));
 
+// Restaurant Details
+const RestaurantPage = lazy(() => import('../pages/RestaurantPage'));
+
 // Wrapper com Suspense
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<any>>): ReactNode => (
@@ -54,6 +56,9 @@ export const router = createBrowserRouter([
   // App
   { path: '/feed', element: withSuspense(Feed) },
   { path: '/saved', element: withSuspense(SavedRestaurants) },
+  
+  // Restaurant Details
+  { path: '/restaurant/:id', element: withSuspense(RestaurantPage) },
 
   // Fallback
   { path: '*', element: <Navigate to="/" replace /> },

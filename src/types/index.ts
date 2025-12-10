@@ -52,35 +52,39 @@ export interface RestaurantTag {
  * Combina dados do banco com campos calculados
  */
 export interface Restaurant {
-  [x: string]: string | null;
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   image: string | null;
-  gallery: string[];
-  description: string | null;
-  longDescription: string | null;
-  tags: RestaurantTag[];
-  rating: number;
-  reviewCount: number;
-  distance: string | null;
-  price: string | null;
-  priceRange: number | null;
-  address: string;
-  neighborhood: string | null;
-  city: string;
-  phone: string | null;
-  website: string | null;
-  hours: Record<string, unknown> | null;
-  cuisineTypes: string[];
-  features: string[];
-  ratingsBreakdown: {
-    food: number;
-    service: number;
-    ambiance: number;
+  cover_image?: string | null;
+  gallery?: string[];
+  description?: string | null;
+  longDescription?: string | null;
+  tags?: RestaurantTag[];
+  rating?: number;
+  reviewCount?: number;
+  distance?: string | null;
+  price?: string | null;
+  priceRange?: number | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  hours?: Record<string, unknown> | null;
+  cuisineTypes?: string[];
+  features?: string[];
+  ratingsBreakdown?: {
+    proposta?: number;
+    comida?: number;
+    apresentacao?: number;
+    atendimento?: number;
+    food?: number;
+    service?: number;
+    ambiance?: number;
   };
-  latitude: number | null;
-  longitude: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 /** Review para exibição */

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   ChevronLeft,
   Plus,
@@ -9,8 +10,10 @@ import {
   X,
   Filter,
   Loader2,
+  MoreVertical,
+  Edit3,
 } from 'lucide-react';
-import { useSavedRestaurants, SavedRestaurant } from '../../hooks/useSavedRestaurants';
+import { useSavedRestaurants, SavedRestaurant, SavedList } from '../../hooks/useSavedRestaurants';
 import { useAuthStore } from '../../store';
 
 interface SavedRestaurantsProps {
@@ -46,25 +49,25 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
     loading,
     markAsVisited,
     createList,
+    deleteList,
     removeRestaurant,
     getRestaurantsByList,
     getListCounts,
+    reload,
   } = useSavedRestaurants(userId);
 
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<SavedList | null>(null);
+  const [showListOptions, setShowListOptions] = useState<string | null>(null);
   const [showRatingModal, setShowRatingModal] = useState<SavedRestaurant | null>(null);
-  const [contextMenu, setContextMenu] = useState<{
-    restaurant: SavedRestaurant;
-    x: number;
-    y: number;
-  } | null>(null);
   const [newListName, setNewListName] = useState('');
   const [newListIcon, setNewListIcon] = useState('📁');
+  const [editListName, setEditListName] = useState('');
+  const [editListIcon, setEditListIcon] = useState('📁');
 
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const counts = getListCounts();
 
   useEffect(() => {
@@ -88,17 +91,6 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
     }
   });
 
-  const handleTouchStart = (restaurant: SavedRestaurant, e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    longPressTimer.current = setTimeout(() => {
-      setContextMenu({ restaurant, x: touch.clientX, y: touch.clientY });
-    }, 500);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  };
-
   const handleCreateList = async () => {
     if (!newListName.trim()) return;
     await createList(newListName, newListIcon);
@@ -107,10 +99,49 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
     setShowCreateModal(false);
   };
 
+  const handleEditList = async () => {
+    if (!showEditModal || !editListName.trim()) return;
+    
+    // Atualizar lista via Supabase diretamente
+    const { supabase } = await import('../../lib/supabase');
+    await supabase
+      .from('saved_lists')
+      .update({ name: editListName, icon: editListIcon })
+      .eq('id', showEditModal.id);
+    
+    await reload();
+    setShowEditModal(null);
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    const list = lists.find(l => l.id === listId);
+    if (list?.is_system) {
+      alert('Não é possível excluir listas do sistema');
+      return;
+    }
+    
+    if (confirm('Tem certeza que deseja excluir esta lista? Os restaurantes salvos nela serão removidos.')) {
+      await deleteList(listId);
+      setShowListOptions(null);
+      // Se a lista ativa foi excluída, selecionar outra
+      if (activeListId === listId) {
+        const remaining = lists.filter(l => l.id !== listId);
+        setActiveListId(remaining[0]?.id || null);
+      }
+    }
+  };
+
   const handleRating = async (rating: number) => {
     if (!showRatingModal) return;
     await markAsVisited(showRatingModal.id, rating, rating >= 4);
     setShowRatingModal(null);
+  };
+
+  const openEditModal = (list: SavedList) => {
+    setEditListName(list.name);
+    setEditListIcon(list.icon || '📁');
+    setShowEditModal(list);
+    setShowListOptions(null);
   };
 
   // Loading
@@ -164,30 +195,82 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
         {/* Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {lists.map((list) => (
-            <button
-              key={list.id}
-              onClick={() => setActiveListId(list.id)}
-              className={`flex items-center gap-1.5 py-2.5 px-4 rounded-full border-none text-sm whitespace-nowrap cursor-pointer shadow-sm transition-all ${
-                activeListId === list.id
-                  ? 'bg-red text-white font-semibold'
-                  : 'bg-white text-dark font-normal'
-              }`}
-            >
-              <span>{list.icon || '📁'}</span>
-              <span>{list.name}</span>
-              {counts[list.id] > 0 && (
-                <span
-                  className={`py-0.5 px-2 rounded-xl text-xs ${
-                    activeListId === list.id ? 'bg-white/30' : 'bg-light-gray'
-                  }`}
-                >
-                  {counts[list.id]}
-                </span>
-              )}
-            </button>
+            <div key={list.id} className="relative">
+              <button
+                onClick={() => setActiveListId(list.id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  if (!list.is_system) setShowListOptions(list.id);
+                }}
+                className={`flex items-center gap-1.5 py-2.5 px-4 rounded-full border-none text-sm whitespace-nowrap cursor-pointer shadow-sm transition-all ${
+                  activeListId === list.id
+                    ? 'bg-red text-white font-semibold'
+                    : 'bg-white text-dark font-normal'
+                }`}
+              >
+                <span>{list.icon || '📁'}</span>
+                <span>{list.name}</span>
+                {counts[list.id] > 0 && (
+                  <span
+                    className={`py-0.5 px-2 rounded-xl text-xs ${
+                      activeListId === list.id ? 'bg-white/30' : 'bg-light-gray'
+                    }`}
+                  >
+                    {counts[list.id]}
+                  </span>
+                )}
+                {/* Botão de opções para listas não-sistema */}
+                {!list.is_system && activeListId === list.id && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowListOptions(showListOptions === list.id ? null : list.id);
+                    }}
+                    className="ml-1 p-0.5 rounded-full hover:bg-white/20"
+                  >
+                    <MoreVertical size={14} />
+                  </button>
+                )}
+              </button>
+
+              {/* Dropdown de opções da lista */}
+              <AnimatePresence>
+                {showListOptions === list.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg z-50 overflow-hidden min-w-[150px]"
+                  >
+                    <button
+                      onClick={() => openEditModal(list)}
+                      className="flex items-center gap-2 w-full py-3 px-4 text-left text-sm text-dark hover:bg-light-gray"
+                    >
+                      <Edit3 size={16} />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteList(list.id)}
+                      className="flex items-center gap-2 w-full py-3 px-4 text-left text-sm text-red hover:bg-red/10"
+                    >
+                      <Trash2 size={16} />
+                      Excluir
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ))}
         </div>
       </header>
+
+      {/* Fechar dropdown ao clicar fora */}
+      {showListOptions && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowListOptions(null)} 
+        />
+      )}
 
       {/* Sort Bar */}
       <div className="flex items-center justify-between p-3 px-4 bg-white border-b border-black/5 relative">
@@ -239,14 +322,13 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
           </div>
         ) : (
           sortedRestaurants.map((restaurant) => (
-            <RestaurantCard
+            <SwipeableRestaurantCard
               key={restaurant.id}
               restaurant={restaurant}
               listType={activeList?.system_type || null}
               onClick={() => handleRestaurantClick(restaurant.restaurant_id)}
               onMarkVisited={() => setShowRatingModal(restaurant)}
-              onTouchStart={(e) => handleTouchStart(restaurant, e)}
-              onTouchEnd={handleTouchEnd}
+              onDelete={() => removeRestaurant(restaurant.id)}
             />
           ))
         )}
@@ -286,45 +368,6 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
         </div>
       )}
 
-      {/* Context Menu */}
-      {contextMenu && (
-        <>
-          <div onClick={() => setContextMenu(null)} className="fixed inset-0 z-[199]" />
-          <div
-            className="fixed bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] z-[200] overflow-hidden min-w-[180px]"
-            style={{
-              left: Math.min(contextMenu.x, window.innerWidth - 200),
-              top: Math.min(contextMenu.y, window.innerHeight - 120),
-            }}
-          >
-            <button
-              onClick={() => {
-                if (navigator.share)
-                  navigator.share({
-                    title: contextMenu.restaurant.restaurant_name,
-                    text: `Vamos aqui? ${contextMenu.restaurant.restaurant_name}`,
-                  });
-                setContextMenu(null);
-              }}
-              className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none border-b border-black/5 text-left text-sm text-dark cursor-pointer"
-            >
-              <Send size={18} />
-              Convidar amigo
-            </button>
-            <button
-              onClick={async () => {
-                await removeRestaurant(contextMenu.restaurant.id);
-                setContextMenu(null);
-              }}
-              className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none text-left text-sm text-red cursor-pointer"
-            >
-              <Trash2 size={18} />
-              Remover
-            </button>
-          </div>
-        </>
-      )}
-
       {/* Create List Modal */}
       {showCreateModal && (
         <div
@@ -352,10 +395,10 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
                   <button
                     key={emoji}
                     onClick={() => setNewListIcon(emoji)}
-                    className={`w-10 h-10 rounded-xl text-xl cursor-pointer ${
+                    className={`w-10 h-10 rounded-xl text-xl cursor-pointer border-2 ${
                       newListIcon === emoji
-                        ? 'border-2 border-red bg-red/10'
-                        : 'border-2 border-transparent bg-light-gray'
+                        ? 'border-red bg-red/10'
+                        : 'border-transparent bg-light-gray'
                     }`}
                   >
                     {emoji}
@@ -389,83 +432,185 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
           </div>
         </div>
       )}
+
+      {/* Edit List Modal */}
+      {showEditModal && (
+        <div
+          onClick={() => setShowEditModal(null)}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-5"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl p-6 w-full max-w-[320px]"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-dark">Editar Lista</h3>
+              <button
+                onClick={() => setShowEditModal(null)}
+                className="bg-transparent border-none cursor-pointer"
+              >
+                <X size={20} className="text-gray" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray mb-2">Escolha um ícone</p>
+              <div className="flex flex-wrap gap-2">
+                {emojiOptions.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => setEditListIcon(emoji)}
+                    className={`w-10 h-10 rounded-xl text-xl cursor-pointer border-2 ${
+                      editListIcon === emoji
+                        ? 'border-red bg-red/10'
+                        : 'border-transparent bg-light-gray'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <p className="text-sm text-gray mb-2">Nome da lista</p>
+              <input
+                type="text"
+                value={editListName}
+                onChange={(e) => setEditListName(e.target.value)}
+                placeholder="Nome da lista"
+                className="w-full p-3 px-4 rounded-xl border border-black/10 text-base outline-none"
+              />
+            </div>
+
+            <button
+              onClick={handleEditList}
+              disabled={!editListName.trim()}
+              className={`w-full py-3.5 border-none rounded-xl text-base font-semibold cursor-pointer ${
+                editListName.trim()
+                  ? 'bg-red text-white'
+                  : 'bg-light-gray text-gray cursor-not-allowed'
+              }`}
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-// Restaurant Card Sub-component
-interface RestaurantCardProps {
+// Swipeable Restaurant Card
+interface SwipeableCardProps {
   restaurant: SavedRestaurant;
   listType: string | null;
   onClick: () => void;
   onMarkVisited: () => void;
-  onTouchStart: (e: React.TouchEvent) => void;
-  onTouchEnd: () => void;
+  onDelete: () => void;
 }
 
-const RestaurantCard: React.FC<RestaurantCardProps> = ({
+const SwipeableRestaurantCard: React.FC<SwipeableCardProps> = ({
   restaurant,
   listType,
   onClick,
   onMarkVisited,
-  onTouchStart,
-  onTouchEnd,
+  onDelete,
 }) => {
+  const [showDelete, setShowDelete] = useState(false);
+  const constraintsRef = useRef<HTMLDivElement>(null);
+
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x < -100) {
+      setShowDelete(true);
+    } else {
+      setShowDelete(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    await onDelete();
+  };
+
   return (
-    <div
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onTouchCancel={onTouchEnd}
-      className="flex bg-white rounded-2xl overflow-hidden mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
-    >
-      {/* Image */}
-      <div
-        onClick={onClick}
-        className="w-[100px] min-h-[100px] bg-light-gray bg-cover bg-center cursor-pointer relative"
-        style={{
-          backgroundImage: restaurant.restaurant_image
-            ? `url(${restaurant.restaurant_image})`
-            : 'none',
-        }}
-      />
+    <div ref={constraintsRef} className="relative mb-3 overflow-hidden rounded-2xl">
+      {/* Delete background */}
+      <div className="absolute inset-0 bg-red flex items-center justify-end px-6 rounded-2xl">
+        <button 
+          onClick={handleDelete}
+          className="flex flex-col items-center text-white"
+        >
+          <Trash2 size={24} />
+          <span className="text-xs mt-1">Excluir</span>
+        </button>
+      </div>
 
-      {/* Content */}
-      <div className="flex-1 p-3 flex flex-col justify-between">
-        <div onClick={onClick} className="cursor-pointer">
-          <h3 className="text-base font-semibold text-dark mb-1">
-            {restaurant.restaurant_name}
-          </h3>
+      {/* Card content */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -100, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        animate={{ x: showDelete ? -100 : 0 }}
+        className="relative bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex"
+      >
+        {/* Image */}
+        <div
+          onClick={onClick}
+          className="w-[100px] min-h-[100px] bg-light-gray bg-cover bg-center cursor-pointer relative rounded-l-2xl"
+          style={{
+            backgroundImage: restaurant.restaurant_image
+              ? `url(${restaurant.restaurant_image})`
+              : 'none',
+          }}
+        />
 
-          <div className="flex items-center gap-2 mb-1.5">
-            {restaurant.restaurant_rating ? (
-              <div className="flex items-center gap-1">
-                <Star size={12} fill="#FF3B30" className="text-red" />
-                <span className="text-sm font-medium text-dark">
-                  {restaurant.restaurant_rating.toFixed(1)}
-                </span>
-              </div>
-            ) : null}
+        {/* Content */}
+        <div className="flex-1 p-3 flex flex-col justify-between">
+          <div onClick={onClick} className="cursor-pointer">
+            <h3 className="text-base font-semibold text-dark mb-1">
+              {restaurant.restaurant_name}
+            </h3>
 
-            {restaurant.restaurant_price && (
-              <span className="text-sm text-gray">{restaurant.restaurant_price}</span>
+            <div className="flex items-center gap-2 mb-1.5">
+              {restaurant.restaurant_rating ? (
+                <div className="flex items-center gap-1">
+                  <Star size={12} fill="#FF3B30" className="text-red" />
+                  <span className="text-sm font-medium text-dark">
+                    {restaurant.restaurant_rating.toFixed(1)}
+                  </span>
+                </div>
+              ) : null}
+
+              {restaurant.restaurant_price && (
+                <span className="text-sm text-gray">{restaurant.restaurant_price}</span>
+              )}
+            </div>
+
+            {restaurant.restaurant_address && (
+              <p className="text-xs text-gray truncate">{restaurant.restaurant_address}</p>
             )}
           </div>
 
-          {restaurant.restaurant_address && (
-            <p className="text-xs text-gray truncate">{restaurant.restaurant_address}</p>
+          {/* Action Button */}
+          {listType === 'to_try' && !restaurant.visited && (
+            <button
+              onClick={onMarkVisited}
+              className="mt-2 py-2 px-3 bg-red/10 text-red border-none rounded-lg text-xs font-semibold cursor-pointer"
+            >
+              Já fui! Avaliar
+            </button>
           )}
         </div>
+      </motion.div>
 
-        {/* Action Button */}
-        {listType === 'to_try' && !restaurant.visited && (
-          <button
-            onClick={onMarkVisited}
-            className="mt-2 py-2 px-3 bg-red/10 text-red border-none rounded-lg text-xs font-semibold cursor-pointer"
-          >
-            Já fui! Avaliar
-          </button>
-        )}
-      </div>
+      {/* Tap to close swipe */}
+      {showDelete && (
+        <div 
+          className="absolute inset-y-0 left-0 right-[100px] z-10"
+          onClick={() => setShowDelete(false)}
+        />
+      )}
     </div>
   );
 };
