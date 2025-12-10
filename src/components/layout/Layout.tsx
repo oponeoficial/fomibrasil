@@ -54,10 +54,8 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: 'home', label: 'Início', icon: <Home size={20} />, section: 'main' },
-  { id: 'search', label: 'Busca Avançada', icon: <Search size={20} />, section: 'main' },
-  { id: 'saved', label: 'Restaurantes Salvos', icon: <Bookmark size={20} />, section: 'main' },
+  { id: 'saved', label: 'Minhas Listas', icon: <List size={20} />, section: 'main' },
   { id: 'friends', label: 'Meus Amigos', icon: <Users size={20} />, section: 'main' },
-  { id: 'lists', label: 'Minhas Listas', icon: <List size={20} />, section: 'main' },
   { id: 'foryou', label: 'Para Você', icon: <Target size={20} />, section: 'main' },
   { id: 'activity', label: 'Atividade', icon: <MessageCircle size={20} />, section: 'social' },
   { id: 'foodies', label: 'Foodies que sigo', icon: <Crown size={20} />, section: 'social' },
