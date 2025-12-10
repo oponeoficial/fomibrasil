@@ -17,6 +17,7 @@ import { useFeedRestaurants } from '../hooks/useRestaurants';
 import { getGreeting, getContextualMessage } from '../utils/helpers';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
+import { TabId } from '../types';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -52,6 +53,24 @@ export default function Feed() {
     navigate('/');
   };
 
+  // Handler para navegação das tabs
+  const handleTabChange = (tab: TabId) => {
+    if (tab === 'newreview') {
+      navigate('/new-review');
+      return;
+    }
+    if (tab === 'activity') {
+      navigate('/activity');
+      return;
+    }
+    if (tab === 'discover') {
+      // TODO: implementar descobrir
+      setActiveTab(tab);
+      return;
+    }
+    setActiveTab(tab);
+  };
+
   return (
     <div className="min-h-screen bg-cream font-sans">
       <Header
@@ -77,6 +96,7 @@ export default function Feed() {
         onNavigate={(section) => {
           if (section === 'home') setActiveTab('home');
           if (section === 'saved') navigate('/saved');
+          if (section === 'activity') navigate('/activity');
           if (section === 'logout') handleLogout();
         }}
       />
@@ -182,8 +202,6 @@ export default function Feed() {
                   key={restaurant.id}
                   restaurant={restaurant}
                   onSelect={() => setSelectedRestaurant(restaurant)}
-                  onSave={() => toggleSavedRestaurant(restaurant.id)}
-                  isSaved={savedRestaurants.includes(restaurant.id)}
                 />
               ))}
             </div>
@@ -207,15 +225,13 @@ export default function Feed() {
         )}
       </main>
 
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Restaurant Details Modal */}
       {selectedRestaurant && (
         <RestaurantDetails
           restaurant={selectedRestaurant}
           onClose={() => setSelectedRestaurant(null)}
-          onSave={() => toggleSavedRestaurant(selectedRestaurant.id)}
-          isSaved={savedRestaurants.includes(selectedRestaurant.id)}
         />
       )}
     </div>

@@ -32,6 +32,10 @@ const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants
 // Restaurant Details
 const RestaurantPage = lazy(() => import('../pages/RestaurantPage'));
 
+// Reviews
+const NewReview = lazy(() => import('../components/review/NewReview'));
+const ActivityFeed = lazy(() => import('../components/activity/ActivityFeed'));
+
 // Wrapper com Suspense
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<any>>): ReactNode => (
@@ -59,6 +63,10 @@ export const router = createBrowserRouter([
   
   // Restaurant Details
   { path: '/restaurant/:id', element: withSuspense(RestaurantPage) },
+
+  // Reviews
+  { path: '/new-review', element: withSuspense(NewReview) },
+  { path: '/activity', element: withSuspense(ActivityFeed) },
 
   // Fallback
   { path: '*', element: <Navigate to="/" replace /> },
