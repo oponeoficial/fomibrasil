@@ -1,15 +1,27 @@
 /**
- * FOMÍ - Hook de Restaurantes Salvos (Limpo)
+ * FOMÍ - Hook de Restaurantes Salvos
  * 
- * Usa tipos centralizados de types/index.ts
- * Derivados do schema Supabase.
+ * Versão atualizada: busca dados do restaurante via JOIN
+ * (campos foram removidos de saved_restaurants)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { SavedList, SavedRestaurantRow, RestaurantTag } from '../types';
 
-// Tipo para UI com campos parseados
+// Tipo para as listas
+export interface SavedList {
+  id: string;
+  user_id: string;
+  name: string;
+  icon: string | null;
+  is_system: boolean | null;
+  system_type: string | null;
+  sort_order: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Tipo para UI
 export interface SavedRestaurant {
   id: string;
   restaurant_id: string;
@@ -19,48 +31,53 @@ export interface SavedRestaurant {
   restaurant_address: string | null;
   restaurant_rating: number | null;
   restaurant_price: string | null;
-  restaurant_latitude: number | null;
-  restaurant_longitude: number | null;
-  restaurant_tags: RestaurantTag[];
-  personal_rating: number | null;
-  personal_note: string | null;
-  context_tags: string[];
   visited: boolean;
   visited_at: string | null;
   visit_count: number;
-  reminder_enabled: boolean;
   created_at: string;
 }
 
-// Re-export para compatibilidade
-export type { SavedList };
-
-// Helper para chamadas RPC
-const rpc = async (fnName: string, params: Record<string, unknown>) => {
-  return supabase.rpc(fnName as never, params as never);
-};
+// Tipo do banco após JOIN
+interface SavedRestaurantRow {
+  id: string;
+  restaurant_id: string;
+  list_id: string;
+  visited: boolean | null;
+  visited_at: string | null;
+  visit_count: number | null;
+  created_at: string | null;
+  restaurants: {
+    name: string;
+    cover_image: string | null;
+    address: string | null;
+    rating_avg: number | null;
+    price_range: number | null;
+  } | null;
+}
 
 // Converter row do banco para UI
 function toUI(row: SavedRestaurantRow): SavedRestaurant {
+  const priceMap: Record<number, string> = {
+    1: '$',
+    2: '$$',
+    3: '$$$',
+    4: '$$$$',
+  };
+
   return {
     id: row.id,
     restaurant_id: row.restaurant_id,
     list_id: row.list_id,
-    restaurant_name: row.restaurant_name,
-    restaurant_image: row.restaurant_image,
-    restaurant_address: row.restaurant_address,
-    restaurant_rating: row.restaurant_rating,
-    restaurant_price: row.restaurant_price,
-    restaurant_latitude: row.restaurant_latitude,
-    restaurant_longitude: row.restaurant_longitude,
-    restaurant_tags: (row.restaurant_tags as unknown as RestaurantTag[]) || [],
-    personal_rating: row.personal_rating,
-    personal_note: row.personal_note,
-    context_tags: row.context_tags || [],
+    restaurant_name: row.restaurants?.name || 'Restaurante',
+    restaurant_image: row.restaurants?.cover_image || null,
+    restaurant_address: row.restaurants?.address || null,
+    restaurant_rating: row.restaurants?.rating_avg || null,
+    restaurant_price: row.restaurants?.price_range 
+      ? priceMap[row.restaurants.price_range] || null 
+      : null,
     visited: row.visited ?? false,
     visited_at: row.visited_at,
     visit_count: row.visit_count ?? 0,
-    reminder_enabled: row.reminder_enabled ?? false,
     created_at: row.created_at ?? new Date().toISOString(),
   };
 }
@@ -94,11 +111,14 @@ export function useSavedRestaurants(userId: string | null) {
 
       // Se não tem listas, criar as padrão
       if (!listsData || listsData.length === 0) {
-        const { error: createError } = await rpc('create_default_lists_for_user', {
-          p_user_id: userId,
-        });
+        const { error: createError } = await supabase.rpc(
+          'create_default_lists_for_user' as never, 
+          { p_user_id: userId } as never
+        );
 
-        if (createError) throw createError;
+        if (createError) {
+          console.warn('Erro ao criar listas padrão:', createError);
+        }
 
         const { data: newLists } = await supabase
           .from('saved_lists')
@@ -111,15 +131,32 @@ export function useSavedRestaurants(userId: string | null) {
         setLists(listsData);
       }
 
-      // Carregar restaurantes salvos
+      // Carregar restaurantes salvos com JOIN na tabela restaurants
       const { data: restaurantsData, error: restaurantsError } = await supabase
         .from('saved_restaurants')
-        .select('*')
+        .select(`
+          id,
+          restaurant_id,
+          list_id,
+          visited,
+          visited_at,
+          visit_count,
+          created_at,
+          restaurants (
+            name,
+            cover_image,
+            address,
+            rating_avg,
+            price_range
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (restaurantsError) throw restaurantsError;
-      setRestaurants((restaurantsData || []).map(toUI));
+
+      const parsed = (restaurantsData || []).map((row) => toUI(row as unknown as SavedRestaurantRow));
+      setRestaurants(parsed);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError('Erro ao carregar restaurantes salvos');
@@ -132,30 +169,32 @@ export function useSavedRestaurants(userId: string | null) {
     loadData();
   }, [loadData]);
 
-  const saveRestaurant = async (
-    restaurantId: string,
-    listType: string,
-    restaurantData: {
-      name: string;
-      image?: string;
-      address?: string;
-      rating?: number;
-      price?: string;
-      latitude?: number;
-      longitude?: number;
-      tags?: { text: string; color: string }[];
-      context_tags?: string[];
-    }
-  ) => {
+  const saveRestaurant = async (restaurantId: string, listId: string) => {
     if (!userId) return { success: false, error: 'Usuário não logado' };
 
     try {
-      const { data, error } = await rpc('save_restaurant', {
-        p_user_id: userId,
-        p_restaurant_id: restaurantId,
-        p_list_type: listType,
-        p_restaurant_data: restaurantData,
-      });
+      // Verificar se já existe
+      const { data: existing } = await supabase
+        .from('saved_restaurants')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('restaurant_id', restaurantId)
+        .eq('list_id', listId)
+        .maybeSingle();
+
+      if (existing) {
+        return { success: true, data: existing };
+      }
+
+      const { data, error } = await supabase
+        .from('saved_restaurants')
+        .insert({
+          user_id: userId,
+          restaurant_id: restaurantId,
+          list_id: listId,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       await loadData();
@@ -166,20 +205,37 @@ export function useSavedRestaurants(userId: string | null) {
     }
   };
 
-  const markAsVisited = async (savedId: string, rating: number, moveToFavorites = false) => {
+  const markAsVisited = async (savedId: string, rating?: number, moveToFavorites = false) => {
     if (!userId) return { success: false };
 
     try {
-      const { data, error } = await rpc('mark_as_visited', {
-        p_user_id: userId,
-        p_saved_id: savedId,
-        p_rating: rating,
-        p_move_to_favorites: moveToFavorites,
-      });
+      // Atualizar como visitado
+      const { error: updateError } = await supabase
+        .from('saved_restaurants')
+        .update({
+          visited: true,
+          visited_at: new Date().toISOString(),
+          visit_count: 1, // Ou incrementar
+        } as never)
+        .eq('id', savedId)
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Se moveToFavorites, mover para lista de favoritos
+      if (moveToFavorites && rating && rating >= 4) {
+        const favoritesList = lists.find(l => l.system_type === 'favorites');
+        if (favoritesList) {
+          await supabase
+            .from('saved_restaurants')
+            .update({ list_id: favoritesList.id } as never)
+            .eq('id', savedId)
+            .eq('user_id', userId);
+        }
+      }
+
       await loadData();
-      return { success: true, data };
+      return { success: true };
     } catch (err) {
       console.error('Erro ao marcar como visitado:', err);
       return { success: false };
@@ -190,11 +246,11 @@ export function useSavedRestaurants(userId: string | null) {
     if (!userId) return { success: false };
 
     try {
-      const { error } = await rpc('move_restaurant_to_list', {
-        p_user_id: userId,
-        p_saved_id: savedId,
-        p_new_list_id: newListId,
-      });
+      const { error } = await supabase
+        .from('saved_restaurants')
+        .update({ list_id: newListId } as never)
+        .eq('id', savedId)
+        .eq('user_id', userId);
 
       if (error) throw error;
       await loadData();
@@ -209,11 +265,17 @@ export function useSavedRestaurants(userId: string | null) {
     if (!userId) return { success: false };
 
     try {
-      const { data, error } = await rpc('create_custom_list', {
-        p_user_id: userId,
-        p_name: name,
-        p_icon: icon,
-      });
+      const { data, error } = await supabase
+        .from('saved_lists')
+        .insert({
+          user_id: userId,
+          name,
+          icon,
+          is_system: false,
+          sort_order: lists.length + 1,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       await loadData();
@@ -263,43 +325,11 @@ export function useSavedRestaurants(userId: string | null) {
     }
   };
 
-  const toggleReminder = async (savedId: string, enabled: boolean, radius = 500) => {
-    if (!userId) return { success: false };
-
-    try {
-      const { error } = await rpc('toggle_reminder', {
-        p_user_id: userId,
-        p_saved_id: savedId,
-        p_enabled: enabled,
-        p_radius: radius,
-      });
-
-      if (error) throw error;
-      await loadData();
-      return { success: true };
-    } catch (err) {
-      console.error('Erro ao toggle reminder:', err);
-      return { success: false };
-    }
-  };
-
-  const updateNote = async (savedId: string, note: string) => {
-    if (!userId) return { success: false };
-
-    try {
-      const { error } = await supabase
-        .from('saved_restaurants')
-        .update({ personal_note: note } as never)
-        .eq('id', savedId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      await loadData();
-      return { success: true };
-    } catch (err) {
-      console.error('Erro ao atualizar nota:', err);
-      return { success: false };
-    }
+  const toggleReminder = async (savedId: string, enabled: boolean) => {
+    // Reminders foram removidos da tabela simplificada
+    // Implementar se necessário no futuro
+    console.warn('toggleReminder: funcionalidade removida na simplificação');
+    return { success: true };
   };
 
   const getRestaurantsByList = (listId: string) => {
@@ -314,6 +344,16 @@ export function useSavedRestaurants(userId: string | null) {
     return counts;
   };
 
+  const isRestaurantSaved = (restaurantId: string) => {
+    return restaurants.some(r => r.restaurant_id === restaurantId);
+  };
+
+  const getRestaurantLists = (restaurantId: string): string[] => {
+    return restaurants
+      .filter(r => r.restaurant_id === restaurantId)
+      .map(r => r.list_id);
+  };
+
   return {
     lists,
     restaurants,
@@ -326,9 +366,10 @@ export function useSavedRestaurants(userId: string | null) {
     deleteList,
     removeRestaurant,
     toggleReminder,
-    updateNote,
     getRestaurantsByList,
     getListCounts,
+    isRestaurantSaved,
+    getRestaurantLists,
     reload: loadData,
   };
 }

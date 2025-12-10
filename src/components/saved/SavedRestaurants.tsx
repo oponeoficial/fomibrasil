@@ -4,8 +4,6 @@ import {
   ChevronLeft,
   Plus,
   Star,
-  Bell,
-  BellOff,
   Send,
   Trash2,
   X,
@@ -21,11 +19,10 @@ interface SavedRestaurantsProps {
   onRestaurantClick?: (restaurantId: string) => void;
 }
 
-type SortOption = 'recent' | 'nearest' | 'rating' | 'visits';
+type SortOption = 'recent' | 'rating' | 'visits';
 
 const sortOptions: { id: SortOption; label: string }[] = [
   { id: 'recent', label: 'Mais recentes' },
-  { id: 'nearest', label: 'Mais perto' },
   { id: 'rating', label: 'Maior nota' },
   { id: 'visits', label: 'Mais visitados' },
 ];
@@ -42,7 +39,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
 
   const userId = userIdProp ?? user?.id ?? null;
   const handleBack = onBack ?? (() => navigate('/feed'));
-  const handleRestaurantClick = onRestaurantClick ?? ((id: string) => console.log('Restaurant clicked:', id));
+  const handleRestaurantClick = onRestaurantClick ?? ((id: string) => navigate(`/restaurant/${id}`));
 
   const {
     lists,
@@ -50,7 +47,6 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
     markAsVisited,
     createList,
     removeRestaurant,
-    toggleReminder,
     getRestaurantsByList,
     getListCounts,
   } = useSavedRestaurants(userId);
@@ -84,10 +80,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
   const sortedRestaurants = [...activeRestaurants].sort((a, b) => {
     switch (sortBy) {
       case 'rating':
-        return (
-          (b.personal_rating || b.restaurant_rating || 0) -
-          (a.personal_rating || a.restaurant_rating || 0)
-        );
+        return (b.restaurant_rating || 0) - (a.restaurant_rating || 0);
       case 'visits':
         return b.visit_count - a.visit_count;
       default:
@@ -180,7 +173,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
                   : 'bg-white text-dark font-normal'
               }`}
             >
-              <span>{list.icon}</span>
+              <span>{list.icon || '📁'}</span>
               <span>{list.name}</span>
               {counts[list.id] > 0 && (
                 <span
@@ -301,28 +294,9 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
             className="fixed bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.2)] z-[200] overflow-hidden min-w-[180px]"
             style={{
               left: Math.min(contextMenu.x, window.innerWidth - 200),
-              top: Math.min(contextMenu.y, window.innerHeight - 180),
+              top: Math.min(contextMenu.y, window.innerHeight - 120),
             }}
           >
-            <button
-              onClick={async () => {
-                await toggleReminder(
-                  contextMenu.restaurant.id,
-                  !contextMenu.restaurant.reminder_enabled
-                );
-                setContextMenu(null);
-              }}
-              className="flex items-center gap-3 w-full py-3.5 px-4 bg-transparent border-none border-b border-black/5 text-left text-sm text-dark cursor-pointer"
-            >
-              {contextMenu.restaurant.reminder_enabled ? (
-                <BellOff size={18} />
-              ) : (
-                <Bell size={18} />
-              )}
-              {contextMenu.restaurant.reminder_enabled
-                ? 'Desativar lembrete'
-                : 'Definir lembrete'}
-            </button>
             <button
               onClick={() => {
                 if (navigator.share)
@@ -453,13 +427,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
             ? `url(${restaurant.restaurant_image})`
             : 'none',
         }}
-      >
-        {restaurant.reminder_enabled && (
-          <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-red flex items-center justify-center">
-            <Bell size={12} className="text-white" />
-          </div>
-        )}
-      </div>
+      />
 
       {/* Content */}
       <div className="flex-1 p-3 flex flex-col justify-between">
@@ -469,21 +437,7 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </h3>
 
           <div className="flex items-center gap-2 mb-1.5">
-            {restaurant.personal_rating ? (
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray">Minha nota:</span>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    size={12}
-                    fill={i <= restaurant.personal_rating! ? '#FF3B30' : 'transparent'}
-                    className={
-                      i <= restaurant.personal_rating! ? 'text-red' : 'text-gray/30'
-                    }
-                  />
-                ))}
-              </div>
-            ) : restaurant.restaurant_rating ? (
+            {restaurant.restaurant_rating ? (
               <div className="flex items-center gap-1">
                 <Star size={12} fill="#FF3B30" className="text-red" />
                 <span className="text-sm font-medium text-dark">
@@ -491,6 +445,10 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
                 </span>
               </div>
             ) : null}
+
+            {restaurant.restaurant_price && (
+              <span className="text-sm text-gray">{restaurant.restaurant_price}</span>
+            )}
           </div>
 
           {restaurant.restaurant_address && (
