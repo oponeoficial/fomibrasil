@@ -85,107 +85,90 @@ export type Database = {
           },
         ]
       }
-      leads: {
+      profiles: {
         Row: {
+          avatar_url: string | null
+          beta_tester: boolean | null
+          bio: string | null
+          birth_date: string | null
           city: string | null
-          converted_at: string | null
-          converted_to_user: boolean | null
-          converted_user_id: string | null
           created_at: string | null
+          decision_style: string[] | null
+          dietary_restrictions: string[] | null
+          dining_frequency: string | null
+          disliked_cuisines: string[] | null
+          followers_count: number | null
+          following_count: number | null
+          full_name: string | null
+          gender: string | null
           id: string
           latitude: number | null
           location: unknown
           longitude: number | null
+          neighborhood: string | null
+          notifications_enabled: boolean | null
           onboarding_completed: boolean | null
-          onboarding_step: string | null
+          place_types: string[] | null
           preferences: Json | null
-          session_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          city?: string | null
-          converted_at?: string | null
-          converted_to_user?: boolean | null
-          converted_user_id?: string | null
-          created_at?: string | null
-          id?: string
-          latitude?: number | null
-          location?: unknown
-          longitude?: number | null
-          onboarding_completed?: boolean | null
-          onboarding_step?: string | null
-          preferences?: Json | null
-          session_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          city?: string | null
-          converted_at?: string | null
-          converted_to_user?: boolean | null
-          converted_user_id?: string | null
-          created_at?: string | null
-          id?: string
-          latitude?: number | null
-          location?: unknown
-          longitude?: number | null
-          onboarding_completed?: boolean | null
-          onboarding_step?: string | null
-          preferences?: Json | null
-          session_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leads_converted_user_id_fkey"
-            columns: ["converted_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          city: string | null
-          created_at: string | null
-          followers_count: number | null
-          following_count: number | null
-          full_name: string | null
-          id: string
-          location: unknown
-          preferences: Json | null
+          preferred_occasions: string[] | null
           reviews_count: number | null
           updated_at: string | null
           username: string
         }
         Insert: {
           avatar_url?: string | null
+          beta_tester?: boolean | null
           bio?: string | null
+          birth_date?: string | null
           city?: string | null
           created_at?: string | null
+          decision_style?: string[] | null
+          dietary_restrictions?: string[] | null
+          dining_frequency?: string | null
+          disliked_cuisines?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           full_name?: string | null
+          gender?: string | null
           id: string
+          latitude?: number | null
           location?: unknown
+          longitude?: number | null
+          neighborhood?: string | null
+          notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          place_types?: string[] | null
           preferences?: Json | null
+          preferred_occasions?: string[] | null
           reviews_count?: number | null
           updated_at?: string | null
           username: string
         }
         Update: {
           avatar_url?: string | null
+          beta_tester?: boolean | null
           bio?: string | null
+          birth_date?: string | null
           city?: string | null
           created_at?: string | null
+          decision_style?: string[] | null
+          dietary_restrictions?: string[] | null
+          dining_frequency?: string | null
+          disliked_cuisines?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          latitude?: number | null
           location?: unknown
+          longitude?: number | null
+          neighborhood?: string | null
+          notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          place_types?: string[] | null
           preferences?: Json | null
+          preferred_occasions?: string[] | null
           reviews_count?: number | null
           updated_at?: string | null
           username?: string
@@ -194,13 +177,15 @@ export type Database = {
       }
       restaurants: {
         Row: {
-          address: string
+          address: string | null
           city: string
           cover_image: string | null
           created_at: string | null
           cuisine_types: string[] | null
+          custo_beneficio: string[] | null
           description: string | null
           features: string[] | null
+          formato: string[] | null
           gallery: string[] | null
           hours: Json | null
           id: string
@@ -211,54 +196,64 @@ export type Database = {
           name: string
           neighborhood: string | null
           phone: string | null
+          prato_ancora: string | null
           price_range: number | null
-          rating_ambiance: number | null
+          rating_apresentacao: number | null
+          rating_atendimento: number | null
           rating_avg: number | null
-          rating_food: number | null
-          rating_service: number | null
+          rating_comida: number | null
+          rating_proposta: number | null
           reviews_count: number | null
           saves_count: number | null
           slug: string
           updated_at: string | null
+          vale_a_ida: string | null
           website: string | null
         }
         Insert: {
-          address: string
+          address?: string | null
           city: string
           cover_image?: string | null
           created_at?: string | null
           cuisine_types?: string[] | null
+          custo_beneficio?: string[] | null
           description?: string | null
           features?: string[] | null
+          formato?: string[] | null
           gallery?: string[] | null
           hours?: Json | null
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
-          location: unknown
+          location?: unknown
           long_description?: string | null
           name: string
           neighborhood?: string | null
           phone?: string | null
+          prato_ancora?: string | null
           price_range?: number | null
-          rating_ambiance?: number | null
+          rating_apresentacao?: number | null
+          rating_atendimento?: number | null
           rating_avg?: number | null
-          rating_food?: number | null
-          rating_service?: number | null
+          rating_comida?: number | null
+          rating_proposta?: number | null
           reviews_count?: number | null
           saves_count?: number | null
           slug: string
           updated_at?: string | null
+          vale_a_ida?: string | null
           website?: string | null
         }
         Update: {
-          address?: string
+          address?: string | null
           city?: string
           cover_image?: string | null
           created_at?: string | null
           cuisine_types?: string[] | null
+          custo_beneficio?: string[] | null
           description?: string | null
           features?: string[] | null
+          formato?: string[] | null
           gallery?: string[] | null
           hours?: Json | null
           id?: string
@@ -269,15 +264,18 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           phone?: string | null
+          prato_ancora?: string | null
           price_range?: number | null
-          rating_ambiance?: number | null
+          rating_apresentacao?: number | null
+          rating_atendimento?: number | null
           rating_avg?: number | null
-          rating_food?: number | null
-          rating_service?: number | null
+          rating_comida?: number | null
+          rating_proposta?: number | null
           reviews_count?: number | null
           saves_count?: number | null
           slug?: string
           updated_at?: string | null
+          vale_a_ida?: string | null
           website?: string | null
         }
         Relationships: []
@@ -419,23 +417,10 @@ export type Database = {
       }
       saved_restaurants: {
         Row: {
-          context_tags: string[] | null
           created_at: string | null
           id: string
           list_id: string
-          personal_note: string | null
-          personal_rating: number | null
-          reminder_enabled: boolean | null
-          reminder_radius_meters: number | null
-          restaurant_address: string | null
           restaurant_id: string
-          restaurant_image: string | null
-          restaurant_latitude: number | null
-          restaurant_longitude: number | null
-          restaurant_name: string
-          restaurant_price: string | null
-          restaurant_rating: number | null
-          restaurant_tags: Json | null
           updated_at: string | null
           user_id: string
           visit_count: number | null
@@ -443,23 +428,10 @@ export type Database = {
           visited_at: string | null
         }
         Insert: {
-          context_tags?: string[] | null
           created_at?: string | null
           id?: string
           list_id: string
-          personal_note?: string | null
-          personal_rating?: number | null
-          reminder_enabled?: boolean | null
-          reminder_radius_meters?: number | null
-          restaurant_address?: string | null
           restaurant_id: string
-          restaurant_image?: string | null
-          restaurant_latitude?: number | null
-          restaurant_longitude?: number | null
-          restaurant_name: string
-          restaurant_price?: string | null
-          restaurant_rating?: number | null
-          restaurant_tags?: Json | null
           updated_at?: string | null
           user_id: string
           visit_count?: number | null
@@ -467,23 +439,10 @@ export type Database = {
           visited_at?: string | null
         }
         Update: {
-          context_tags?: string[] | null
           created_at?: string | null
           id?: string
           list_id?: string
-          personal_note?: string | null
-          personal_rating?: number | null
-          reminder_enabled?: boolean | null
-          reminder_radius_meters?: number | null
-          restaurant_address?: string | null
           restaurant_id?: string
-          restaurant_image?: string | null
-          restaurant_latitude?: number | null
-          restaurant_longitude?: number | null
-          restaurant_name?: string
-          restaurant_price?: string | null
-          restaurant_rating?: number | null
-          restaurant_tags?: Json | null
           updated_at?: string | null
           user_id?: string
           visit_count?: number | null
@@ -521,6 +480,42 @@ export type Database = {
           proj4text?: string | null
           srid?: number
           srtext?: string | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+          type: Database["public"]["Enums"]["tag_type"]
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+          type: Database["public"]["Enums"]["tag_type"]
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          type?: Database["public"]["Enums"]["tag_type"]
         }
         Relationships: []
       }
@@ -663,29 +658,6 @@ export type Database = {
       addgeometrycolumn:
         | {
             Args: {
-              column_name: string
-              new_dim: number
-              new_srid: number
-              new_type: string
-              schema_name: string
-              table_name: string
-              use_typmod?: boolean
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              column_name: string
-              new_dim: number
-              new_srid: number
-              new_type: string
-              table_name: string
-              use_typmod?: boolean
-            }
-            Returns: string
-          }
-        | {
-            Args: {
               catalog_name: string
               column_name: string
               new_dim: number
@@ -697,6 +669,38 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              column_name: string
+              new_dim: number
+              new_srid: number
+              new_type: string
+              schema_name: string
+              table_name: string
+              use_typmod?: boolean
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              column_name: string
+              new_dim: number
+              new_srid: number
+              new_type: string
+              table_name: string
+              use_typmod?: boolean
+            }
+            Returns: string
+          }
+      calculate_restaurant_rating_avg: {
+        Args: {
+          p_apresentacao: number
+          p_atendimento: number
+          p_comida: number
+          p_proposta: number
+        }
+        Returns: number
+      }
       convert_lead_to_user: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: undefined
@@ -713,6 +717,15 @@ export type Database = {
       dropgeometrycolumn:
         | {
             Args: {
+              catalog_name: string
+              column_name: string
+              schema_name: string
+              table_name: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
               column_name: string
               schema_name: string
               table_name: string
@@ -720,28 +733,20 @@ export type Database = {
             Returns: string
           }
         | { Args: { column_name: string; table_name: string }; Returns: string }
+      dropgeometrytable:
         | {
             Args: {
               catalog_name: string
-              column_name: string
               schema_name: string
               table_name: string
             }
             Returns: string
           }
-      dropgeometrytable:
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
-        | {
-            Args: {
-              catalog_name: string
-              schema_name: string
-              table_name: string
-            }
-            Returns: string
-          }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      generate_slug: { Args: { name: string }; Returns: string }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -840,6 +845,7 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_email_by_username: { Args: { p_username: string }; Returns: string }
       get_lead: {
         Args: { p_session_id: string }
         Returns: {
@@ -852,6 +858,35 @@ export type Database = {
           onboarding_step: string
           preferences: Json
           session_id: string
+        }[]
+      }
+      get_onboarding_progress: {
+        Args: { p_session_id?: string; p_user_id?: string }
+        Returns: {
+          current_step: string
+          data: Json
+          is_completed: boolean
+        }[]
+      }
+      get_onboarding_summary: {
+        Args: { p_session_id?: string; p_user_id?: string }
+        Returns: {
+          bairro: string
+          city: string
+          cozinhas_nao_gosta: string[]
+          faixa_preco: string[]
+          ocasioes_favoritas: string[]
+          restricoes: string[]
+        }[]
+      }
+      get_tags_by_type: {
+        Args: { p_type: Database["public"]["Enums"]["tag_type"] }
+        Returns: {
+          category: string
+          icon: string
+          id: string
+          name: string
+          slug: string
         }[]
       }
       gettransactionid: { Args: never; Returns: unknown }
@@ -890,9 +925,106 @@ export type Database = {
           slug: string
         }[]
       }
+      onboarding_start: { Args: { p_session_id: string }; Returns: string }
+      onboarding_step1_lead: {
+        Args: {
+          p_bairro?: string
+          p_city?: string
+          p_data_nascimento: string
+          p_genero?: string
+          p_nome_publico: string
+          p_session_id: string
+        }
+        Returns: string
+      }
+      onboarding_step1_user: {
+        Args: {
+          p_bairro?: string
+          p_city?: string
+          p_data_nascimento: string
+          p_full_name: string
+          p_genero?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      onboarding_step2_lead: {
+        Args: {
+          p_cozinhas_favoritas?: string[]
+          p_cozinhas_nao_gosta: string[]
+          p_session_id: string
+        }
+        Returns: string
+      }
+      onboarding_step2_user: {
+        Args: {
+          p_cozinhas_favoritas?: string[]
+          p_cozinhas_nao_gosta: string[]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      onboarding_step3_lead: {
+        Args: { p_ocasioes_favoritas: string[]; p_session_id: string }
+        Returns: string
+      }
+      onboarding_step3_user: {
+        Args: { p_ocasioes_favoritas: string[]; p_user_id: string }
+        Returns: undefined
+      }
+      onboarding_step4_lead: {
+        Args: {
+          p_estilo_decisao: string
+          p_faixa_preco_preferida: string[]
+          p_session_id: string
+          p_vibe_preferida: string[]
+        }
+        Returns: string
+      }
+      onboarding_step4_user: {
+        Args: {
+          p_estilo_decisao: string
+          p_faixa_preco_preferida: string[]
+          p_user_id: string
+          p_vibe_preferida: string[]
+        }
+        Returns: undefined
+      }
+      onboarding_step5_lead: {
+        Args: {
+          p_restricoes_alimentares: string[]
+          p_sem_restricoes?: boolean
+          p_session_id: string
+        }
+        Returns: string
+      }
+      onboarding_step5_user: {
+        Args: {
+          p_restricoes_alimentares: string[]
+          p_sem_restricoes?: boolean
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      onboarding_step6_lead: {
+        Args: {
+          p_aceita_experimentos?: boolean
+          p_aceita_notificacoes?: boolean
+          p_session_id: string
+        }
+        Returns: string
+      }
+      onboarding_step6_user: {
+        Args: {
+          p_aceita_experimentos?: boolean
+          p_aceita_notificacoes?: boolean
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       populate_geometry_columns:
-        | { Args: { use_typmod?: boolean }; Returns: string }
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
+        | { Args: { use_typmod?: boolean }; Returns: string }
       postgis_constraint_dims: {
         Args: { geomcolumn: string; geomschema: string; geomtable: string }
         Returns: number
@@ -999,6 +1131,14 @@ export type Database = {
       st_asewkt: { Args: { "": string }; Returns: string }
       st_asgeojson:
         | {
+            Args: { geog: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | {
+            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | {
             Args: {
               geom_column?: string
               maxdecimaldigits?: number
@@ -1007,18 +1147,32 @@ export type Database = {
             }
             Returns: string
           }
-        | {
-            Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
-            Returns: string
-          }
-        | {
-            Args: { geog: unknown; maxdecimaldigits?: number; options?: number }
-            Returns: string
-          }
         | { Args: { "": string }; Returns: string }
       st_asgml:
         | {
+            Args: {
+              geog: unknown
+              id?: string
+              maxdecimaldigits?: number
+              nprefix?: string
+              options?: number
+            }
+            Returns: string
+          }
+        | {
             Args: { geom: unknown; maxdecimaldigits?: number; options?: number }
+            Returns: string
+          }
+        | { Args: { "": string }; Returns: string }
+        | {
+            Args: {
+              geog: unknown
+              id?: string
+              maxdecimaldigits?: number
+              nprefix?: string
+              options?: number
+              version: number
+            }
             Returns: string
           }
         | {
@@ -1032,35 +1186,13 @@ export type Database = {
             }
             Returns: string
           }
-        | {
-            Args: {
-              geog: unknown
-              id?: string
-              maxdecimaldigits?: number
-              nprefix?: string
-              options?: number
-              version: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              geog: unknown
-              id?: string
-              maxdecimaldigits?: number
-              nprefix?: string
-              options?: number
-            }
-            Returns: string
-          }
-        | { Args: { "": string }; Returns: string }
       st_askml:
         | {
-            Args: { geom: unknown; maxdecimaldigits?: number; nprefix?: string }
+            Args: { geog: unknown; maxdecimaldigits?: number; nprefix?: string }
             Returns: string
           }
         | {
-            Args: { geog: unknown; maxdecimaldigits?: number; nprefix?: string }
+            Args: { geom: unknown; maxdecimaldigits?: number; nprefix?: string }
             Returns: string
           }
         | { Args: { "": string }; Returns: string }
@@ -1081,11 +1213,11 @@ export type Database = {
       }
       st_assvg:
         | {
-            Args: { geom: unknown; maxdecimaldigits?: number; rel?: number }
+            Args: { geog: unknown; maxdecimaldigits?: number; rel?: number }
             Returns: string
           }
         | {
-            Args: { geog: unknown; maxdecimaldigits?: number; rel?: number }
+            Args: { geom: unknown; maxdecimaldigits?: number; rel?: number }
             Returns: string
           }
         | { Args: { "": string }; Returns: string }
@@ -1093,8 +1225,7 @@ export type Database = {
       st_astwkb:
         | {
             Args: {
-              geom: unknown[]
-              ids: number[]
+              geom: unknown
               prec?: number
               prec_m?: number
               prec_z?: number
@@ -1105,7 +1236,8 @@ export type Database = {
           }
         | {
             Args: {
-              geom: unknown
+              geom: unknown[]
+              ids: number[]
               prec?: number
               prec_m?: number
               prec_z?: number
@@ -1119,8 +1251,8 @@ export type Database = {
         Returns: string
       }
       st_azimuth:
-        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
         | { Args: { geog1: unknown; geog2: unknown }; Returns: number }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
       st_boundingdiagonal: {
         Args: { fits?: boolean; geom: unknown }
         Returns: unknown
@@ -1185,11 +1317,11 @@ export type Database = {
         Returns: boolean
       }
       st_distance:
-        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
         | {
             Args: { geog1: unknown; geog2: unknown; use_spheroid?: boolean }
             Returns: number
           }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
       st_distancesphere:
         | { Args: { geom1: unknown; geom2: unknown }; Returns: number }
         | {
@@ -1211,6 +1343,11 @@ export type Database = {
       }
       st_equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       st_expand:
+        | { Args: { box: unknown; dx: number; dy: number }; Returns: unknown }
+        | {
+            Args: { box: unknown; dx: number; dy: number; dz?: number }
+            Returns: unknown
+          }
         | {
             Args: {
               dm?: number
@@ -1221,11 +1358,6 @@ export type Database = {
             }
             Returns: unknown
           }
-        | {
-            Args: { box: unknown; dx: number; dy: number; dz?: number }
-            Returns: unknown
-          }
-        | { Args: { box: unknown; dx: number; dy: number }; Returns: unknown }
       st_force3d: { Args: { geom: unknown; zvalue?: number }; Returns: unknown }
       st_force3dm: {
         Args: { geom: unknown; mvalue?: number }
@@ -1248,8 +1380,8 @@ export type Database = {
       st_geogfromtext: { Args: { "": string }; Returns: unknown }
       st_geographyfromtext: { Args: { "": string }; Returns: unknown }
       st_geohash:
-        | { Args: { geom: unknown; maxchars?: number }; Returns: string }
         | { Args: { geog: unknown; maxchars?: number }; Returns: string }
+        | { Args: { geom: unknown; maxchars?: number }; Returns: string }
       st_geomcollfromtext: { Args: { "": string }; Returns: unknown }
       st_geometricmedian: {
         Args: {
@@ -1293,8 +1425,8 @@ export type Database = {
         Returns: unknown
       }
       st_intersects:
-        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
         | { Args: { geog1: unknown; geog2: unknown }; Returns: boolean }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       st_isvaliddetail: {
         Args: { flags?: number; geom: unknown }
         Returns: Database["public"]["CompositeTypes"]["valid_detail"]
@@ -1447,8 +1579,8 @@ export type Database = {
         Returns: unknown
       }
       st_setsrid:
-        | { Args: { geom: unknown; srid: number }; Returns: unknown }
         | { Args: { geog: unknown; srid: number }; Returns: unknown }
+        | { Args: { geom: unknown; srid: number }; Returns: unknown }
       st_sharedpaths: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
@@ -1471,8 +1603,8 @@ export type Database = {
         Returns: Record<string, unknown>[]
       }
       st_srid:
-        | { Args: { geom: unknown }; Returns: number }
         | { Args: { geog: unknown }; Returns: number }
+        | { Args: { geom: unknown }; Returns: number }
       st_subdivide: {
         Args: { geom: unknown; gridsize?: number; maxvertices?: number }
         Returns: unknown[]
@@ -1501,15 +1633,15 @@ export type Database = {
       }
       st_touches: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       st_transform:
-        | { Args: { geom: unknown; to_proj: string }; Returns: unknown }
-        | {
-            Args: { from_proj: string; geom: unknown; to_srid: number }
-            Returns: unknown
-          }
         | {
             Args: { from_proj: string; geom: unknown; to_proj: string }
             Returns: unknown
           }
+        | {
+            Args: { from_proj: string; geom: unknown; to_srid: number }
+            Returns: unknown
+          }
+        | { Args: { geom: unknown; to_proj: string }; Returns: unknown }
       st_triangulatepolygon: { Args: { g1: unknown }; Returns: unknown }
       st_union:
         | { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
@@ -1573,20 +1705,46 @@ export type Database = {
         }
         Returns: string
       }
-      upsert_lead: {
-        Args: {
-          p_city?: string
-          p_latitude?: number
-          p_longitude?: number
-          p_onboarding_step?: string
-          p_preferences?: Json
-          p_session_id: string
-        }
-        Returns: string
-      }
+      upsert_lead:
+        | {
+            Args: {
+              p_city?: string
+              p_latitude?: number
+              p_longitude?: number
+              p_onboarding_step?: string
+              p_preferences?: Json
+              p_session_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_aceita_experimentos?: boolean
+              p_aceita_notificacoes?: boolean
+              p_bairro?: string
+              p_city?: string
+              p_cozinhas_favoritas?: string[]
+              p_cozinhas_nao_gosta?: string[]
+              p_data_nascimento?: string
+              p_estilo_decisao?: string
+              p_faixa_preco_preferida?: string[]
+              p_genero?: string
+              p_latitude?: number
+              p_longitude?: number
+              p_nome_publico?: string
+              p_ocasioes_favoritas?: string[]
+              p_onboarding_completed?: boolean
+              p_onboarding_step?: string
+              p_restricoes_alimentares?: string[]
+              p_sem_restricoes?: boolean
+              p_session_id: string
+              p_vibe_preferida?: string[]
+            }
+            Returns: string
+          }
     }
     Enums: {
-      [_ in never]: never
+      tag_type: "cuisine" | "occasion" | "vibe" | "restriction"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1721,6 +1879,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tag_type: ["cuisine", "occasion", "vibe", "restriction"],
+    },
   },
 } as const
