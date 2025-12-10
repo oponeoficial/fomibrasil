@@ -30,7 +30,7 @@ const sortOptions: { id: SortOption; label: string }[] = [
   { id: 'visits', label: 'Mais visitados' },
 ];
 
-const emojiOptions = ['📁', '🍕', '🍣', '🍔', '🥗', '☕', '🍷', '🎉', '💼', '✈️', '🏠', '❤️'];
+const emojiOptions = ['📁', '🏃', '❤️', '⭐', '🍕', '🍣', '🍔', '🥗', '☕', '🍷', '🎉', '💼', '✈️', '🏠', '🔥', '🌙', '🎂', '🥂'];
 
 export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
   userId: userIdProp,
@@ -183,13 +183,24 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
           >
             <ChevronLeft size={24} className="text-dark" />
           </button>
-          <h1 className="text-xl font-bold font-display text-dark">Minhas Listas</h1>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="w-10 h-10 rounded-full border-none bg-red cursor-pointer flex items-center justify-center shadow-[0_2px_8px_rgba(255,59,48,0.3)]"
-          >
-            <Plus size={20} className="text-white" />
-          </button>
+          <h1 className="text-xl font-bold font-display text-dark">Restaurantes Salvos</h1>
+          <div className="flex items-center gap-2">
+            {/* Botão Editar - só aparece se lista ativa não é sistema */}
+            {activeList && !activeList.is_system && (
+              <button
+                onClick={() => openEditModal(activeList)}
+                className="w-10 h-10 rounded-full border-none bg-black/5 cursor-pointer flex items-center justify-center"
+              >
+                <Edit3 size={18} className="text-dark" />
+              </button>
+            )}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="w-10 h-10 rounded-full border-none bg-red cursor-pointer flex items-center justify-center shadow-[0_2px_8px_rgba(255,59,48,0.3)]"
+            >
+              <Plus size={20} className="text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}

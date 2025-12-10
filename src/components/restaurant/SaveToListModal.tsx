@@ -9,17 +9,21 @@ import { X, Plus, Check, Loader2, Heart } from 'lucide-react';
 import { useSavedLists, SavedList } from '../../hooks/useSavedLists';
 
 const AVAILABLE_ICONS = [
+  { id: '📁', icon: '📁' },
+  { id: '🏃', icon: '🏃' },
   { id: '❤️', icon: '❤️' },
   { id: '⭐', icon: '⭐' },
   { id: '🔥', icon: '🔥' },
-  { id: '📍', icon: '📍' },
-  { id: '🍽️', icon: '🍽️' },
+  { id: '🍕', icon: '🍕' },
+  { id: '🍣', icon: '🍣' },
+  { id: '🍔', icon: '🍔' },
+  { id: '☕', icon: '☕' },
+  { id: '🍷', icon: '🍷' },
   { id: '🎉', icon: '🎉' },
   { id: '💼', icon: '💼' },
+  { id: '✈️', icon: '✈️' },
+  { id: '🏠', icon: '🏠' },
   { id: '🌙', icon: '🌙' },
-  { id: '☕', icon: '☕' },
-  { id: '🍕', icon: '🍕' },
-  { id: '🍺', icon: '🍺' },
   { id: '🥂', icon: '🥂' },
 ];
 
