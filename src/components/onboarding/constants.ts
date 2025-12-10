@@ -1,7 +1,76 @@
 /**
- * FOMÍ - Onboarding v2 Constants
- * Baseado na spec Onboarding_2.pdf
+ * FOMÍ - Onboarding v3 Constants
+ * Todas as opções com ícones Lucide
  */
+
+import {
+  // Gender
+  User,
+  Users,
+  Sparkles,
+  EyeOff,
+  // Cuisines
+  Flag,
+  Sun,
+  TreePalm,
+  Mountain,
+  MapPin,
+  Flame,
+  Star,
+  UtensilsCrossed,
+  Wine,
+  Fish,
+  Landmark,
+  Soup,
+  Pizza,
+  Beef,
+  Salad,
+  Leaf,
+  Sandwich,
+  Coffee,
+  Croissant,
+  // Occasions
+  Beer,
+  Music,
+  Martini,
+  PartyPopper,
+  TrendingUp,
+  Moon,
+  Briefcase,
+  Laptop,
+  Heart,
+  Cake,
+  Globe,
+  Home,
+  Sunrise,
+  Baby,
+  Zap,
+  Camera,
+  // Frequency
+  Calendar,
+  CalendarDays,
+  CalendarCheck,
+  CalendarClock,
+  // Place types
+  ChefHat,
+  GlassWater,
+  Search,
+  Flame as FireIcon,
+  CandlestickChart,
+  // Decision
+  ClipboardList,
+  Clock,
+  RotateCcw,
+  PlusCircle,
+  // Restrictions
+  Check,
+  MilkOff,
+  WheatOff,
+  Shell,
+  Nut,
+  // UI
+  type LucideIcon,
+} from 'lucide-react';
 
 import type { ChipOption, ChipValidation } from './types';
 
@@ -10,9 +79,18 @@ import type { ChipOption, ChipValidation } from './types';
 // ============================================================================
 
 export const GENDER_OPTIONS: ChipOption[] = [
-  { id: 'male', label: 'Masculino', emoji: '👨' },
-  { id: 'female', label: 'Feminino', emoji: '👩' },
-  { id: 'prefer-not', label: 'Prefiro não dizer', emoji: '🤐' },
+  {
+    id: 'male', label: 'Masculino', icon: User,
+    emoji: ''
+  },
+  {
+    id: 'female', label: 'Feminino', icon: User,
+    emoji: ''
+  },
+  {
+    id: 'prefer-not', label: 'Prefiro não dizer', icon: EyeOff,
+    emoji: ''
+  },
 ];
 
 export const CITIES: string[] = [
@@ -30,33 +108,99 @@ export const CITIES: string[] = [
 
 export const CUISINE_OPTIONS: ChipOption[] = [
   // Brasileiras
-  { id: 'brasileira', label: 'Brasileira', emoji: '🇧🇷', group: 'brasileira' },
-  { id: 'nordestina', label: 'Nordestina', emoji: '🌵', group: 'brasileira' },
-  { id: 'baiana', label: 'Baiana', emoji: '🥥', group: 'brasileira' },
-  { id: 'mineira', label: 'Mineira', emoji: '🫘', group: 'brasileira' },
+  {
+    id: 'brasileira', label: 'Brasileira', icon: Flag, group: 'brasileira',
+    emoji: ''
+  },
+  {
+    id: 'nordestina', label: 'Nordestina', icon: Sun, group: 'brasileira',
+    emoji: ''
+  },
+  {
+    id: 'baiana', label: 'Baiana', icon: TreePalm, group: 'brasileira',
+    emoji: ''
+  },
+  {
+    id: 'mineira', label: 'Mineira', icon: Mountain, group: 'brasileira',
+    emoji: ''
+  },
   // Internacionais
-  { id: 'peruana', label: 'Peruana', emoji: '🇵🇪', group: 'internacional' },
-  { id: 'mexicana', label: 'Mexicana', emoji: '🌮', group: 'internacional' },
-  { id: 'americana', label: 'Americana', emoji: '🇺🇸', group: 'internacional' },
-  { id: 'italiana', label: 'Italiana', emoji: '🇮🇹', group: 'internacional' },
-  { id: 'francesa', label: 'Francesa', emoji: '🇫🇷', group: 'internacional' },
-  { id: 'japonesa', label: 'Japonesa', emoji: '🇯🇵', group: 'internacional' },
+  {
+    id: 'peruana', label: 'Peruana', icon: MapPin, group: 'internacional',
+    emoji: ''
+  },
+  {
+    id: 'mexicana', label: 'Mexicana', icon: Flame, group: 'internacional',
+    emoji: ''
+  },
+  {
+    id: 'americana', label: 'Americana', icon: Star, group: 'internacional',
+    emoji: ''
+  },
+  {
+    id: 'italiana', label: 'Italiana', icon: Pizza, group: 'internacional',
+    emoji: ''
+  },
+  {
+    id: 'francesa', label: 'Francesa', icon: Wine, group: 'internacional',
+    emoji: ''
+  },
+  {
+    id: 'japonesa', label: 'Japonesa', icon: Fish, group: 'internacional',
+    emoji: ''
+  },
   // Asiáticas
-  { id: 'arabe', label: 'Árabe', emoji: '🧆', group: 'asiatica' },
-  { id: 'asiatica', label: 'Asiática', emoji: '🥢', group: 'asiatica' },
-  { id: 'chinesa', label: 'Chinesa', emoji: '🇨🇳', group: 'asiatica' },
+  {
+    id: 'arabe', label: 'Árabe', icon: Landmark, group: 'asiatica',
+    emoji: ''
+  },
+  {
+    id: 'asiatica', label: 'Asiática', icon: Soup, group: 'asiatica',
+    emoji: ''
+  },
+  {
+    id: 'chinesa', label: 'Chinesa', icon: UtensilsCrossed, group: 'asiatica',
+    emoji: ''
+  },
   // Por tipo
-  { id: 'hamburgueria', label: 'Hamburgueria / Lanche', emoji: '🍔', group: 'tipo' },
-  { id: 'pizzaria', label: 'Pizzaria', emoji: '🍕', group: 'tipo' },
-  { id: 'frutos-mar', label: 'Peixes e frutos do mar', emoji: '🦐', group: 'tipo' },
-  { id: 'carnes', label: 'Carnes', emoji: '🥩', group: 'tipo' },
+  {
+    id: 'hamburgueria', label: 'Hamburgueria / Lanche', icon: Sandwich, group: 'tipo',
+    emoji: ''
+  },
+  {
+    id: 'pizzaria', label: 'Pizzaria', icon: Pizza, group: 'tipo',
+    emoji: ''
+  },
+  {
+    id: 'frutos-mar', label: 'Peixes e frutos do mar', icon: Shell, group: 'tipo',
+    emoji: ''
+  },
+  {
+    id: 'carnes', label: 'Carnes', icon: Beef, group: 'tipo',
+    emoji: ''
+  },
   // Dietas
-  { id: 'vegetariana', label: 'Vegetariana', emoji: '🥗', group: 'dieta' },
-  { id: 'vegana', label: 'Vegana', emoji: '🌱', group: 'dieta' },
+  {
+    id: 'vegetariana', label: 'Vegetariana', icon: Salad, group: 'dieta',
+    emoji: ''
+  },
+  {
+    id: 'vegana', label: 'Vegana', icon: Leaf, group: 'dieta',
+    emoji: ''
+  },
   // Outros
-  { id: 'sanduiches', label: 'Sanduíches', emoji: '🥪', group: 'outros' },
-  { id: 'cafes-doces', label: 'Cafés e doces', emoji: '☕', group: 'outros' },
-  { id: 'padaria', label: 'Padaria', emoji: '🥐', group: 'outros' },
+  {
+    id: 'sanduiches', label: 'Sanduíches', icon: Sandwich, group: 'outros',
+    emoji: ''
+  },
+  {
+    id: 'cafes-doces', label: 'Cafés e doces', icon: Coffee, group: 'outros',
+    emoji: ''
+  },
+  {
+    id: 'padaria', label: 'Padaria', icon: Croissant, group: 'outros',
+    emoji: ''
+  },
 ];
 
 // ============================================================================
@@ -65,31 +209,94 @@ export const CUISINE_OPTIONS: ChipOption[] = [
 
 export const OCCASION_OPTIONS: ChipOption[] = [
   // Social / Vibe Noturna
-  { id: 'cervejinha', label: 'Cervejinha com amigos', emoji: '🍺', group: 'social' },
-  { id: 'musica-ao-vivo', label: 'Música ao vivo', emoji: '🎵', group: 'social' },
-  { id: 'bons-drinks', label: 'Bons drinks / coquetelaria', emoji: '🍸', group: 'social' },
-  { id: 'happy-hour', label: 'Happy hour', emoji: '🥂', group: 'social' },
-  { id: 'lugares-hypados', label: 'Lugares hypados', emoji: '🔥', group: 'social' },
-  { id: 'fome-madruga', label: 'Fome na madruga', emoji: '🌙', group: 'social' },
+  {
+    id: 'cervejinha', label: 'Cervejinha com amigos', icon: Beer, group: 'social',
+    emoji: ''
+  },
+  {
+    id: 'musica-ao-vivo', label: 'Música ao vivo', icon: Music, group: 'social',
+    emoji: ''
+  },
+  {
+    id: 'bons-drinks', label: 'Bons drinks / coquetelaria', icon: Martini, group: 'social',
+    emoji: ''
+  },
+  {
+    id: 'happy-hour', label: 'Happy hour', icon: PartyPopper, group: 'social',
+    emoji: ''
+  },
+  {
+    id: 'lugares-hypados', label: 'Lugares hypados', icon: TrendingUp, group: 'social',
+    emoji: ''
+  },
+  {
+    id: 'fome-madruga', label: 'Fome na madruga', icon: Moon, group: 'social',
+    emoji: ''
+  },
   // Trabalho / Negócio
-  { id: 'almoco-negocios', label: 'Almoço de negócios', emoji: '💼', group: 'trabalho' },
-  { id: 'almoco-trabalho', label: 'Almoço do trabalho', emoji: '🍽️', group: 'trabalho' },
-  { id: 'cafe-trabalhar', label: 'Café para trabalhar', emoji: '💻', group: 'trabalho' },
+  {
+    id: 'almoco-negocios', label: 'Almoço de negócios', icon: Briefcase, group: 'trabalho',
+    emoji: ''
+  },
+  {
+    id: 'almoco-trabalho', label: 'Almoço do trabalho', icon: UtensilsCrossed, group: 'trabalho',
+    emoji: ''
+  },
+  {
+    id: 'cafe-trabalhar', label: 'Café para trabalhar', icon: Laptop, group: 'trabalho',
+    emoji: ''
+  },
   // Ação do Amor
-  { id: 'date', label: 'Bom pra date', emoji: '❤️', group: 'amor' },
-  { id: 'aniversario', label: 'Comemorar aniversário', emoji: '🎂', group: 'amor' },
-  { id: 'levar-gringo', label: 'Levar um gringo', emoji: '🌍', group: 'amor' },
+  {
+    id: 'date', label: 'Bom pra date', icon: Heart, group: 'amor',
+    emoji: ''
+  },
+  {
+    id: 'aniversario', label: 'Comemorar aniversário', icon: Cake, group: 'amor',
+    emoji: ''
+  },
+  {
+    id: 'levar-gringo', label: 'Levar um gringo', icon: Globe, group: 'amor',
+    emoji: ''
+  },
   // Família / Conforto
-  { id: 'em-familia', label: 'Em família', emoji: '👨‍👩‍👧‍👦', group: 'familia' },
-  { id: 'domingao', label: 'Domingão à noite', emoji: '🌅', group: 'familia' },
-  { id: 'comida-afetiva', label: 'Comida afetiva / caseira', emoji: '🏠', group: 'familia' },
-  { id: 'family-friendly', label: 'Family-friendly', emoji: '👶', group: 'familia' },
+  {
+    id: 'em-familia', label: 'Em família', icon: Users, group: 'familia',
+    emoji: ''
+  },
+  {
+    id: 'domingao', label: 'Domingão à noite', icon: Sunrise, group: 'familia',
+    emoji: ''
+  },
+  {
+    id: 'comida-afetiva', label: 'Comida afetiva / caseira', icon: Home, group: 'familia',
+    emoji: ''
+  },
+  {
+    id: 'family-friendly', label: 'Family-friendly', icon: Baby, group: 'familia',
+    emoji: ''
+  },
   // Outras Vibes
-  { id: 'lanche-rapido', label: 'Comida / lanche rápido', emoji: '⚡', group: 'outras' },
-  { id: 'adocar-boca', label: 'Adoçar a boca', emoji: '🍰', group: 'outras' },
-  { id: 'visual-foda', label: 'Visual foda', emoji: '📸', group: 'outras' },
-  { id: 'brunch', label: 'Brunch', emoji: '🥞', group: 'outras' },
-  { id: 'delivery', label: 'Em casa (delivery)', emoji: '🛵', group: 'outras' },
+  {
+    id: 'lanche-rapido', label: 'Comida / lanche rápido', icon: Zap, group: 'outras',
+    emoji: ''
+  },
+  {
+    id: 'adocar-boca', label: 'Adoçar a boca', icon: Cake, group: 'outras',
+    emoji: ''
+  },
+  {
+    id: 'visual-foda', label: 'Visual foda', icon: Camera, group: 'outras',
+    emoji: ''
+  },
+  {
+    id: 'brunch', label: 'Brunch', icon: Coffee, group: 'outras',
+    emoji: ''
+  },
+  {
+    id: 'delivery', label: 'Em casa (delivery)', icon: Home, group: 'outras',
+    emoji: ''
+  },
 ];
 
 export const OCCASION_VALIDATION: ChipValidation = {
@@ -99,11 +306,11 @@ export const OCCASION_VALIDATION: ChipValidation = {
 };
 
 export const OCCASION_GROUPS = [
-  { id: 'social', label: '🥂 Social / Vibe Noturna' },
-  { id: 'trabalho', label: '💼 Trabalho / Negócio' },
-  { id: 'amor', label: '❤️ Ação do Amor' },
-  { id: 'familia', label: '👨‍👩‍👧‍👦 Família / Conforto' },
-  { id: 'outras', label: '⚡ Outras Vibes' },
+  { id: 'social', label: 'Social / Vibe Noturna', icon: PartyPopper },
+  { id: 'trabalho', label: 'Trabalho / Negócio', icon: Briefcase },
+  { id: 'amor', label: 'Ação do Amor', icon: Heart },
+  { id: 'familia', label: 'Família / Conforto', icon: Users },
+  { id: 'outras', label: 'Outras Vibes', icon: Zap },
 ];
 
 // ============================================================================
@@ -111,23 +318,65 @@ export const OCCASION_GROUPS = [
 // ============================================================================
 
 export const FREQUENCY_OPTIONS: ChipOption[] = [
-  { id: '1x-mes', label: '1x por mês ou menos', emoji: '📅' },
-  { id: 'algumas-mes', label: 'Algumas vezes por mês', emoji: '📆' },
-  { id: '1x-semana', label: '1x por semana', emoji: '🗓️' },
-  { id: 'algumas-semana', label: 'Algumas vezes por semana', emoji: '📋' },
-  { id: 'todo-dia', label: 'Quase todo dia / todo dia', emoji: '🔥' },
+  {
+    id: '1x-mes', label: '1x por mês ou menos', icon: Calendar,
+    emoji: ''
+  },
+  {
+    id: 'algumas-mes', label: 'Algumas vezes por mês', icon: CalendarDays,
+    emoji: ''
+  },
+  {
+    id: '1x-semana', label: '1x por semana', icon: CalendarCheck,
+    emoji: ''
+  },
+  {
+    id: 'algumas-semana', label: 'Algumas vezes por semana', icon: CalendarClock,
+    emoji: ''
+  },
+  {
+    id: 'todo-dia', label: 'Quase todo dia', icon: Flame,
+    emoji: ''
+  },
 ];
 
 export const PLACE_TYPE_OPTIONS: ChipOption[] = [
-  { id: 'raiz', label: 'Raiz / Comida de verdade', emoji: '🍲' },
-  { id: 'tradicional', label: 'Tradicional / Clássicos bem feitos', emoji: '👨‍🍳' },
-  { id: 'sofisticado', label: 'Sofisticado / Alta coquetelaria', emoji: '✨' },
-  { id: 'visual-foda', label: 'Visual foda / Instagramável', emoji: '📸' },
-  { id: 'fora-obvio', label: 'Fora do óbvio / Escondido', emoji: '🔍' },
-  { id: 'hypado', label: 'Hypado / Disputado', emoji: '🔥' },
-  { id: 'pequeno', label: 'Pequeno e intimista', emoji: '🕯️' },
-  { id: 'cafe-rapido', label: 'Café rápido / No balcão', emoji: '☕' },
-  { id: 'family-friendly', label: 'Family-friendly', emoji: '👶' },
+  {
+    id: 'raiz', label: 'Raiz / Comida de verdade', icon: Soup,
+    emoji: ''
+  },
+  {
+    id: 'tradicional', label: 'Tradicional / Clássicos', icon: ChefHat,
+    emoji: ''
+  },
+  {
+    id: 'sofisticado', label: 'Sofisticado / Alta coquetelaria', icon: GlassWater,
+    emoji: ''
+  },
+  {
+    id: 'visual-foda', label: 'Visual foda / Instagramável', icon: Camera,
+    emoji: ''
+  },
+  {
+    id: 'fora-obvio', label: 'Fora do óbvio / Escondido', icon: Search,
+    emoji: ''
+  },
+  {
+    id: 'hypado', label: 'Hypado / Disputado', icon: TrendingUp,
+    emoji: ''
+  },
+  {
+    id: 'pequeno', label: 'Pequeno e intimista', icon: CandlestickChart,
+    emoji: ''
+  },
+  {
+    id: 'cafe-rapido', label: 'Café rápido / No balcão', icon: Coffee,
+    emoji: ''
+  },
+  {
+    id: 'family-friendly', label: 'Family-friendly', icon: Baby,
+    emoji: ''
+  },
 ];
 
 export const PLACE_TYPE_VALIDATION: ChipValidation = {
@@ -137,10 +386,22 @@ export const PLACE_TYPE_VALIDATION: ChipValidation = {
 };
 
 export const DECISION_STYLE_OPTIONS: ChipOption[] = [
-  { id: 'planejar', label: 'De planejar com antecedência', emoji: '📝' },
-  { id: 'cima-hora', label: 'De decidir em cima da hora', emoji: '⚡' },
-  { id: 'repetir', label: 'De repetir lugar que gostou', emoji: '🔄' },
-  { id: 'testar-novos', label: 'De testar lugares novos', emoji: '🆕' },
+  {
+    id: 'planejar', label: 'De planejar com antecedência', icon: ClipboardList,
+    emoji: ''
+  },
+  {
+    id: 'cima-hora', label: 'De decidir em cima da hora', icon: Zap,
+    emoji: ''
+  },
+  {
+    id: 'repetir', label: 'De repetir lugar que gostou', icon: RotateCcw,
+    emoji: ''
+  },
+  {
+    id: 'testar-novos', label: 'De testar lugares novos', icon: PlusCircle,
+    emoji: ''
+  },
 ];
 
 export const DECISION_STYLE_VALIDATION: ChipValidation = {
@@ -154,15 +415,42 @@ export const DECISION_STYLE_VALIDATION: ChipValidation = {
 // ============================================================================
 
 export const RESTRICTION_OPTIONS: ChipOption[] = [
-  { id: 'none', label: 'Não tenho restrições', emoji: '✅' },
-  { id: 'vegetariano', label: 'Vegetariano', emoji: '🥗' },
-  { id: 'vegano', label: 'Vegano', emoji: '🌱' },
-  { id: 'sem-lactose', label: 'Sem lactose', emoji: '🥛' },
-  { id: 'sem-gluten', label: 'Sem glúten', emoji: '🌾' },
-  { id: 'sem-frutos-mar', label: 'Sem frutos do mar', emoji: '🦐' },
-  { id: 'sem-amendoim', label: 'Sem amendoim', emoji: '🥜' },
-  { id: 'kosher', label: 'Kosher', emoji: '✡️' },
-  { id: 'halal', label: 'Halal', emoji: '☪️' },
+  {
+    id: 'none', label: 'Não tenho restrições', icon: Check,
+    emoji: ''
+  },
+  {
+    id: 'vegetariano', label: 'Vegetariano', icon: Salad,
+    emoji: ''
+  },
+  {
+    id: 'vegano', label: 'Vegano', icon: Leaf,
+    emoji: ''
+  },
+  {
+    id: 'sem-lactose', label: 'Sem lactose', icon: MilkOff,
+    emoji: ''
+  },
+  {
+    id: 'sem-gluten', label: 'Sem glúten', icon: WheatOff,
+    emoji: ''
+  },
+  {
+    id: 'sem-frutos-mar', label: 'Sem frutos do mar', icon: Shell,
+    emoji: ''
+  },
+  {
+    id: 'sem-amendoim', label: 'Sem amendoim', icon: Nut,
+    emoji: ''
+  },
+  {
+    id: 'kosher', label: 'Kosher', icon: Star,
+    emoji: ''
+  },
+  {
+    id: 'halal', label: 'Halal', icon: Moon,
+    emoji: ''
+  },
 ];
 
 // ============================================================================
@@ -172,62 +460,57 @@ export const RESTRICTION_OPTIONS: ChipOption[] = [
 export const STEP_CONTENT = {
   signup: {
     title: 'Criar conta',
-    subtitle: 'Crie seu perfil pra salvar seus lugares favoritos e receber recomendações da comunidade de quem come bem.',
+    subtitle: 'Crie seu perfil pra salvar seus lugares favoritos e receber recomendações da comunidade.',
     cta: 'Criar conta e continuar',
   },
   profile: {
-    title: 'Vamos te conhecer mais um pouco, bem rapidinho!',
+    title: 'Vamos te conhecer melhor',
     subtitle: 'Isso ajuda a personalizar suas recomendações.',
     cta: 'Continuar',
-    locationTitle: 'Quer que a gente use sua localização?',
-    locationText: 'A gente usa isso só pra te sugerir lugares perto de você. Você pode mudar isso nas configurações depois.',
+    locationTitle: 'Quer usar sua localização?',
+    locationText: 'Usamos só pra sugerir lugares perto de você.',
   },
   cuisines: {
-    title: 'O que você não curte comer?',
+    title: 'O que você não curte?',
     subtitle: 'Vamos evitar recomendar o que não combina com você.',
     cta: 'Continuar',
     helper: 'Opcional - pule se curte tudo!',
   },
   occasions: {
-    title: 'O que "ativa" você a sair para comer?',
-    subtitle: 'Escolha de 2 a 5 ocasiões que mais combinam com sua rotina.',
+    title: 'O que te ativa a sair pra comer?',
+    subtitle: 'Escolha de 2 a 5 ocasiões que mais combinam com você.',
     cta: 'Continuar',
   },
   style: {
-    title: 'Agora, vamos afinar o radar',
+    title: 'Vamos afinar o radar',
     subtitle: 'Entenda melhor seu jeito de escolher lugares.',
-    frequencyQuestion: 'Com que frequência você costuma sair pra comer fora?',
-    placeTypeQuestion: 'Qual o tipo de lugar que mais combina com você?',
-    placeTypeHelper: 'Pode escolher mais de um! Misturar é que conta 😉',
-    decisionQuestion: 'Quando você sai pra comer, você é mais...',
     cta: 'Continuar',
+    frequencyQuestion: 'Quantas vezes você come fora?',
+    placeTypeQuestion: 'Que tipo de lugar você curte?',
+    placeTypeHelper: 'Escolha de 2 a 5 opções',
+    decisionQuestion: 'Você é mais...',
   },
   restrictions: {
     title: 'Alguma restrição alimentar?',
-    subtitle: 'Isso nos ajuda a evitar recomendações que não funcionam pra você.',
+    subtitle: 'Vamos garantir que as sugestões funcionem pra você.',
     cta: 'Continuar',
   },
   summary: {
-    title: 'Tudo pronto pra comer bem com a FOMÍ',
+    title: 'Tudo pronto!',
     subtitle: 'Confira o resumo do seu perfil.',
-    notificationLabel: 'Quero receber avisos sobre lugares com a minha cara',
-    notificationHelper: 'Poucas notificações, só o que for relevante.',
-    betaLabel: 'Topa participar de testes da comunidade FOMÍ?',
-    emailWarning: 'Na próxima etapa vamos te pedir pra confirmar seu e-mail. É rapidinho e ajuda a manter a comunidade segura.',
-    cta: 'Continuar',
+    cta: 'Finalizar',
   },
   emailConfirm: {
-    title: 'Confirme seu e-mail pra liberar tudo',
-    cta: 'Abrir meu e-mail',
-    resendCta: 'Reenviar e-mail',
-    skipCta: 'Pular por enquanto',
+    title: 'Conta criada!',
+    subtitle: 'Agora é só fazer login e começar a explorar.',
+    cta: 'Ir para login',
   },
-} as const;
+};
 
 // ============================================================================
-// VALIDAÇÃO DE USERNAME
+// VALIDATION CONSTANTS
 // ============================================================================
 
-export const USERNAME_REGEX = /^[a-zA-Z0-9._]{3,}$/;
+export const USERNAME_REGEX = /^[a-z0-9._]{3,20}$/;
 export const USERNAME_HELP = 'Esse será o seu @ na comunidade. Ex.: @joaosouza';
 export const PASSWORD_MIN_LENGTH = 8;

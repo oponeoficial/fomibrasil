@@ -1,11 +1,13 @@
 /**
  * FOMÍ - Profile Step (Tela 2)
+ * Visual redesenhado com animações
  */
 
-import { MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MapPin, Locate } from 'lucide-react';
 import type { OnboardingData } from '../types';
 import { STEP_CONTENT, GENDER_OPTIONS, CITIES } from '../constants';
-import { StepHeader, InputField, CTAButton } from '../components/UI';
+import { StepHeader, SectionTitle } from '../components/UI';
 import { ChipSelector } from '../components/ChipSelector';
 
 interface ProfileStepProps {
@@ -25,7 +27,6 @@ export function ProfileStep({
   totalSteps,
   onBack,
   onRequestLocation,
-  error,
 }: ProfileStepProps) {
   const content = STEP_CONTENT.profile;
 
@@ -33,27 +34,17 @@ export function ProfileStep({
     updateData({ gender: selected[0] || null });
   };
 
-  const handleLocationRequest = async () => {
-    await onRequestLocation();
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#374151',
-    marginBottom: '8px',
-  };
-
-  const selectStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 16px',
-    borderRadius: '12px',
-    border: '2px solid #E5E7EB',
-    backgroundColor: '#FFFFFF',
-    color: '#111827',
-    fontSize: '16px',
-    outline: 'none',
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -67,119 +58,99 @@ export function ProfileStep({
         totalSteps={totalSteps}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <motion.div 
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
         {/* Data de nascimento */}
-        <InputField
-          label="Data de nascimento"
-          value={data.birthDate}
-          onChange={(v) => updateData({ birthDate: v })}
-          type="date"
-          required
-        />
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Data de nascimento <span className="text-red">*</span>
+          </label>
+          <input
+            type="date"
+            value={data.birthDate}
+            onChange={(e) => updateData({ birthDate: e.target.value })}
+            className="w-full p-4 border-2 border-gray/20 rounded-2xl text-base bg-white outline-none transition-all focus:border-red hover:border-gray/40"
+          />
+        </motion.div>
 
         {/* Gênero */}
-        <div>
-          <label style={labelStyle}>
-            Gênero <span style={{ color: '#9CA3AF' }}>(opcional)</span>
-          </label>
+        <motion.div variants={itemVariants}>
+          <SectionTitle subtitle="Opcional">Gênero</SectionTitle>
           <ChipSelector
             options={GENDER_OPTIONS}
             selected={data.gender ? [data.gender] : []}
             onChange={handleGenderChange}
             columns={2}
           />
-        </div>
+        </motion.div>
 
         {/* Cidade */}
-        <div>
-          <label style={labelStyle}>
-            Em que cidade você mora hoje? <span style={{ color: '#F97316' }}>*</span>
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Em que cidade você mora? <span className="text-red">*</span>
           </label>
-          <select
-            value={data.city}
-            onChange={(e) => updateData({ city: e.target.value })}
-            style={selectStyle}
-            onFocus={(e) => e.target.style.borderColor = '#F97316'}
-            onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-          >
-            <option value="">Selecione sua cidade</option>
-            {CITIES.map((city) => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
-        </div>
+          <div className="relative">
+            <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray" />
+            <select
+              value={data.city}
+              onChange={(e) => updateData({ city: e.target.value })}
+              className="w-full p-4 pl-11 border-2 border-gray/20 rounded-2xl text-base bg-white outline-none transition-all focus:border-red hover:border-gray/40 appearance-none cursor-pointer"
+            >
+              <option value="">Selecione sua cidade</option>
+              {CITIES.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+        </motion.div>
 
         {/* Bairro */}
-        <InputField
-          label="Em qual bairro você mais sai para comer?"
-          value={data.neighborhood}
-          onChange={(v) => updateData({ neighborhood: v })}
-          placeholder="Ex.: Boa Viagem"
-          required
-        />
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Qual seu bairro? <span className="text-red">*</span>
+          </label>
+          <input
+            type="text"
+            value={data.neighborhood}
+            onChange={(e) => updateData({ neighborhood: e.target.value })}
+            placeholder="Ex.: Boa Viagem"
+            className="w-full p-4 border-2 border-gray/20 rounded-2xl text-base bg-white outline-none transition-all focus:border-red hover:border-gray/40"
+          />
+        </motion.div>
 
-        {/* Permissão de localização */}
-        <div style={{ 
-          backgroundColor: '#FFF7ED', 
-          borderRadius: '16px', 
-          padding: '16px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              backgroundColor: '#FFEDD5', 
-              borderRadius: '12px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center' 
-            }}>
-              <MapPin style={{ width: '20px', height: '20px', color: '#F97316' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontWeight: 600, color: '#111827', fontSize: '16px' }}>
-                {content.locationTitle}
-              </h4>
-              <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>
-                {content.locationText}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <CTAButton
-              onClick={handleLocationRequest}
-              variant={data.locationPermission ? 'secondary' : 'primary'}
-              fullWidth
-            >
-              {data.locationPermission ? '✓ Localização ativada' : 'Permitir localização'}
-            </CTAButton>
-          </div>
-
-          {!data.locationPermission && (
-            <button
-              type="button"
-              onClick={() => updateData({ locationPermission: false })}
-              style={{ 
-                fontSize: '14px', 
-                color: '#6B7280', 
-                width: '100%', 
-                textAlign: 'center', 
-                marginTop: '8px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              Agora não
-            </button>
-          )}
-        </div>
-      </div>
-
-      {error && (
-        <p style={{ fontSize: '14px', color: '#EF4444', textAlign: 'center', marginTop: '16px' }}>{error}</p>
-      )}
+        {/* Location Request */}
+        <motion.div variants={itemVariants}>
+          <motion.button
+            type="button"
+            onClick={onRequestLocation}
+            className={`
+              w-full p-4 rounded-2xl border-2 flex items-center justify-center gap-3
+              transition-all duration-300
+              ${data.locationPermission 
+                ? 'border-green-500 bg-green-50 text-green-700' 
+                : 'border-gray/20 bg-white text-gray hover:border-red/30 hover:text-dark'
+              }
+            `}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <Locate size={20} />
+            <span className="font-medium">
+              {data.locationPermission 
+                ? 'Localização ativada!' 
+                : 'Usar minha localização'
+              }
+            </span>
+          </motion.button>
+          <p className="text-xs text-gray text-center mt-2">
+            {content.locationText}
+          </p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

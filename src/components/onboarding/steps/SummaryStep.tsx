@@ -3,13 +3,10 @@
  * Resumo do perfil + consentimentos
  */
 
-import { Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Info, Bell, FlaskConical, MapPin, XCircle, Sparkles, Check } from 'lucide-react';
 import type { OnboardingData } from '../types';
-import { 
-  STEP_CONTENT, 
-  CUISINE_OPTIONS, 
-  OCCASION_OPTIONS 
-} from '../constants';
+import { STEP_CONTENT, CUISINE_OPTIONS, OCCASION_OPTIONS } from '../constants';
 import { StepHeader } from '../components/UI';
 
 interface SummaryStepProps {
@@ -27,32 +24,30 @@ export function SummaryStep({
   stepIndex,
   totalSteps,
   onBack,
+  error,
 }: SummaryStepProps) {
   const content = STEP_CONTENT.summary;
 
   // Mapear IDs para labels
   const dislikedLabels = data.dislikedCuisines
     .map((id) => CUISINE_OPTIONS.find((c) => c.id === id)?.label)
-    .filter(Boolean)
-    .slice(0, 3);
+    .filter(Boolean);
 
   const occasionLabels = data.occasions
     .map((id) => OCCASION_OPTIONS.find((o) => o.id === id)?.label)
-    .filter(Boolean)
-    .slice(0, 3);
+    .filter(Boolean);
 
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: '#F9FAFB',
-    borderRadius: '16px',
-    padding: '16px',
-    marginBottom: '24px',
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
-  const rowStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '12px',
-    fontSize: '14px',
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -66,84 +61,171 @@ export function SummaryStep({
         totalSteps={totalSteps}
       />
 
-      {/* Resumo */}
-      <div style={cardStyle}>
-        <h4 style={{ fontWeight: 600, color: '#111827', marginBottom: '16px' }}>Seu perfil</h4>
+      <motion.div
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        {/* Profile Summary Card */}
+        <motion.div 
+          variants={itemVariants}
+          className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-6 border border-gray/10 shadow-sm"
+        >
+          <h4 className="font-semibold text-dark mb-4 flex items-center gap-2">
+            <Sparkles size={18} className="text-red" />
+            Seu perfil
+          </h4>
 
-        <div>
-          <div style={rowStyle}>
-            <span style={{ color: '#6B7280' }}>Cidade / Bairro</span>
-            <span style={{ color: '#111827', fontWeight: 500 }}>
-              {data.city}, {data.neighborhood}
-            </span>
-          </div>
-
-          {dislikedLabels.length > 0 && (
-            <div style={rowStyle}>
-              <span style={{ color: '#6B7280' }}>Não curte</span>
-              <span style={{ color: '#111827', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
-                {dislikedLabels.join(', ')}
-                {data.dislikedCuisines.length > 3 && ` +${data.dislikedCuisines.length - 3}`}
-              </span>
+          <div className="space-y-4">
+            {/* Location */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red/10 flex items-center justify-center flex-shrink-0">
+                <MapPin size={16} className="text-red" />
+              </div>
+              <div>
+                <p className="text-xs text-gray">Cidade / Bairro</p>
+                <p className="font-medium text-dark">
+                  {data.city}, {data.neighborhood}
+                </p>
+              </div>
             </div>
-          )}
 
-          {occasionLabels.length > 0 && (
-            <div style={{ ...rowStyle, marginBottom: 0 }}>
-              <span style={{ color: '#6B7280' }}>Ocasiões</span>
-              <span style={{ color: '#111827', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
-                {occasionLabels.join(', ')}
-                {data.occasions.length > 3 && ` +${data.occasions.length - 3}`}
-              </span>
+            {/* Disliked cuisines */}
+            {dislikedLabels.length > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red/10 flex items-center justify-center flex-shrink-0">
+                  <XCircle size={16} className="text-red" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray">Não curte</p>
+                  <p className="font-medium text-dark">
+                    {dislikedLabels.slice(0, 3).join(', ')}
+                    {dislikedLabels.length > 3 && ` +${dislikedLabels.length - 3}`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Occasions */}
+            {occasionLabels.length > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red/10 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={16} className="text-red" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray">Ocasiões</p>
+                  <p className="font-medium text-dark">
+                    {occasionLabels.slice(0, 3).join(', ')}
+                    {occasionLabels.length > 3 && ` +${occasionLabels.length - 3}`}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Consents */}
+        <motion.div variants={itemVariants} className="space-y-3">
+          {/* Notifications */}
+          <motion.button
+            type="button"
+            onClick={() => updateData({ notificationsEnabled: !data.notificationsEnabled })}
+            className={`
+              w-full p-4 rounded-2xl border-2 flex items-start gap-4 text-left transition-all
+              ${data.notificationsEnabled 
+                ? 'border-red bg-red/5' 
+                : 'border-gray/20 bg-white'
+              }
+            `}
+            whileTap={{ scale: 0.99 }}
+          >
+            <div className={`
+              w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+              ${data.notificationsEnabled ? 'bg-red' : 'bg-gray/10'}
+            `}>
+              <Bell size={20} className={data.notificationsEnabled ? 'text-white' : 'text-gray'} />
             </div>
-          )}
-        </div>
-      </div>
+            <div className="flex-1">
+              <p className="font-medium text-dark">
+                Quero receber avisos sobre lugares com a minha cara
+              </p>
+              <p className="text-xs text-gray mt-1">
+                Poucas notificações, só o que for relevante.
+              </p>
+            </div>
+            <div className={`
+              w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
+              ${data.notificationsEnabled 
+                ? 'border-red bg-red' 
+                : 'border-gray/30'
+              }
+            `}>
+              {data.notificationsEnabled && <Check size={14} className="text-white" />}
+            </div>
+          </motion.button>
 
-      {/* Toggles de consentimento */}
-      <div style={{ marginBottom: '24px' }}>
-        {/* Notificações */}
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', marginBottom: '16px' }}>
-          <div style={{ paddingTop: '2px' }}>
-            <input
-              type="checkbox"
-              checked={data.notificationsEnabled}
-              onChange={(e) => updateData({ notificationsEnabled: e.target.checked })}
-              style={{ width: '20px', height: '20px', accentColor: '#F97316' }}
-            />
-          </div>
-          <div>
-            <span style={{ fontWeight: 500, color: '#111827', display: 'block' }}>{content.notificationLabel}</span>
-            <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>{content.notificationHelper}</p>
-          </div>
-        </label>
+          {/* Beta Tester */}
+          <motion.button
+            type="button"
+            onClick={() => updateData({ betaTesterEnabled: !data.betaTesterEnabled })}
+            className={`
+              w-full p-4 rounded-2xl border-2 flex items-start gap-4 text-left transition-all
+              ${data.betaTesterEnabled 
+                ? 'border-red bg-red/5' 
+                : 'border-gray/20 bg-white'
+              }
+            `}
+            whileTap={{ scale: 0.99 }}
+          >
+            <div className={`
+              w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+              ${data.betaTesterEnabled ? 'bg-red' : 'bg-gray/10'}
+            `}>
+              <FlaskConical size={20} className={data.betaTesterEnabled ? 'text-white' : 'text-gray'} />
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-dark">
+                Topa participar de testes da comunidade FOMÍ?
+              </p>
+              <p className="text-xs text-gray mt-1">
+                Ajude a moldar o futuro do app.
+              </p>
+            </div>
+            <div className={`
+              w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
+              ${data.betaTesterEnabled 
+                ? 'border-red bg-red' 
+                : 'border-gray/30'
+              }
+            `}>
+              {data.betaTesterEnabled && <Check size={14} className="text-white" />}
+            </div>
+          </motion.button>
+        </motion.div>
 
-        {/* Beta tester */}
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer' }}>
-          <div style={{ paddingTop: '2px' }}>
-            <input
-              type="checkbox"
-              checked={data.betaTesterEnabled}
-              onChange={(e) => updateData({ betaTesterEnabled: e.target.checked })}
-              style={{ width: '20px', height: '20px', accentColor: '#F97316' }}
-            />
-          </div>
-          <span style={{ fontWeight: 500, color: '#111827' }}>{content.betaLabel}</span>
-        </label>
-      </div>
+        {/* Info about email */}
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200"
+        >
+          <Info size={20} className="text-blue-600 flex-shrink-0" />
+          <p className="text-sm text-blue-800">
+            Na próxima etapa vamos te pedir pra confirmar seu e-mail.
+          </p>
+        </motion.div>
 
-      {/* Aviso do e-mail */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'flex-start', 
-        gap: '12px', 
-        backgroundColor: '#EFF6FF', 
-        borderRadius: '12px', 
-        padding: '16px' 
-      }}>
-        <Info style={{ width: '20px', height: '20px', color: '#3B82F6', flexShrink: 0 }} />
-        <p style={{ fontSize: '14px', color: '#1D4ED8' }}>{content.emailWarning}</p>
-      </div>
+        {/* Error */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-4 rounded-xl bg-red/10 border border-red/20"
+          >
+            <p className="text-sm text-red text-center">{error}</p>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }

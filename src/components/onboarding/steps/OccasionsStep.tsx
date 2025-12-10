@@ -35,10 +35,6 @@ export function OccasionsStep({
     updateData({ occasions: selected });
   };
 
-  const isValid = 
-    data.occasions.length >= OCCASION_VALIDATION.min &&
-    data.occasions.length <= OCCASION_VALIDATION.max;
-
   return (
     <div>
       <StepHeader
@@ -58,12 +54,6 @@ export function OccasionsStep({
         groups={OCCASION_GROUPS}
         columns={2}
       />
-
-      {!isValid && data.occasions.length > 0 && (
-        <p style={{ fontSize: '14px', color: '#F97316', textAlign: 'center', marginTop: '16px' }}>
-          Selecione entre {OCCASION_VALIDATION.min} e {OCCASION_VALIDATION.max} opções
-        </p>
-      )}
     </div>
   );
 }

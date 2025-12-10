@@ -1,11 +1,12 @@
 /**
- * FOMÍ - Onboarding v2 Orchestrator
- * Gerencia navegação entre steps
+ * FOMÍ - Onboarding v3 Orchestrator
+ * Gerencia navegação com animações fluidas
  */
 
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useOnboarding } from './hooks/useOnboarding';
-import { StepContainer, FixedFooter, CTAButton } from './components/UI';
+import { StepContainer, FixedFooter, CTAButton, AnimatedStep } from './components/UI';
 
 // Steps
 import { SignupStep } from './steps/SignupStep';
@@ -27,6 +28,7 @@ export function Onboarding() {
     loading,
     error,
     canContinue,
+    direction,
     updateData,
     nextStep,
     prevStep,
@@ -38,17 +40,13 @@ export function Onboarding() {
   const handleContinue = async () => {
     if (step === 'signup') {
       const success = await submitSignup();
-      if (success) {
-        nextStep();
-      }
+      if (success) nextStep();
       return;
     }
 
     if (step === 'summary') {
       const success = await savePreferences();
-      if (success) {
-        nextStep();
-      }
+      if (success) nextStep();
       return;
     }
 
@@ -109,26 +107,43 @@ export function Onboarding() {
     }
   };
 
+  // EmailConfirm tem layout próprio
   if (step === 'email-confirm') {
-    return renderStep();
+    return (
+      <AnimatePresence mode="wait">
+        <AnimatedStep key={step} direction={direction}>
+          {renderStep()}
+        </AnimatedStep>
+      </AnimatePresence>
+    );
   }
+
+  const getButtonText = () => {
+    switch (step) {
+      case 'signup':
+        return 'Criar conta e continuar';
+      case 'summary':
+        return 'Finalizar';
+      default:
+        return 'Continuar';
+    }
+  };
 
   return (
     <StepContainer>
-      {renderStep()}
+      <AnimatePresence mode="wait">
+        <AnimatedStep key={step} direction={direction}>
+          {renderStep()}
+        </AnimatedStep>
+      </AnimatePresence>
 
       <FixedFooter>
-        {error && (
-          <p className="text-sm text-red-500 text-center bg-red-50 p-3 rounded-lg">
-            {error}
-          </p>
-        )}
         <CTAButton
           onClick={handleContinue}
           disabled={!canContinue}
           loading={loading}
         >
-          {step === 'signup' ? 'Criar conta e continuar' : 'Continuar'}
+          {getButtonText()}
         </CTAButton>
       </FixedFooter>
     </StepContainer>

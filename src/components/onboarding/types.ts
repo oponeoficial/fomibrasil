@@ -24,6 +24,7 @@ export const STEP_ORDER: OnboardingStep[] = [
 ];
 
 export interface ChipOption {
+  [x: string]: any;
   id: string;
   label: string;
   emoji: string;

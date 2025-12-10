@@ -1,10 +1,11 @@
 /**
  * FOMÍ - Signup Step (Tela 1)
- * Visual consistente com AuthForm
+ * Visual redesenhado com animações
  */
 
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, AtSign, Check, X, Loader2 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import type { OnboardingData } from '../types';
 import { STEP_CONTENT, USERNAME_REGEX, USERNAME_HELP, PASSWORD_MIN_LENGTH } from '../constants';
@@ -28,33 +29,31 @@ export function SignupStep({
   error,
 }: SignupStepProps) {
   const content = STEP_CONTENT.signup;
-  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [emailError, setEmailError] = useState<string | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Debounced username check
   useEffect(() => {
     if (data.username.length < 3) {
-      setUsernameError(null);
+      setUsernameStatus('idle');
       return;
     }
 
     if (!USERNAME_REGEX.test(data.username)) {
-      setUsernameError('Use apenas letras, números, ponto e underline');
+      setUsernameStatus('idle');
       return;
     }
 
+    setUsernameStatus('checking');
     const timer = setTimeout(async () => {
-      setCheckingUsername(true);
       const { data: existing } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', data.username)
         .maybeSingle();
 
-      setCheckingUsername(false);
-      setUsernameError(existing ? 'Esse username já está em uso' : null);
+      setUsernameStatus(existing ? 'taken' : 'available');
     }, 500);
 
     return () => clearTimeout(timer);
@@ -66,47 +65,34 @@ export function SignupStep({
       setEmailError(null);
       return;
     }
-
     if (!data.email.includes('@') || !data.email.includes('.')) {
       setEmailError('Digite um e-mail válido');
       return;
     }
-
     setEmailError(null);
   }, [data.email]);
 
   const passwordStrength = () => {
     const len = data.password.length;
     if (len === 0) return null;
-    if (len < PASSWORD_MIN_LENGTH) return { label: 'Muito curta', color: '#EF4444' };
-    if (len < 12) return { label: 'Ok', color: '#CA8A04' };
-    return { label: 'Forte', color: '#16A34A' };
+    if (len < PASSWORD_MIN_LENGTH) return { label: 'Muito curta', color: 'text-red', bg: 'bg-red' };
+    if (len < 12) return { label: 'Ok', color: 'text-amber-500', bg: 'bg-amber-500' };
+    return { label: 'Forte', color: 'text-green-500', bg: 'bg-green-500' };
   };
 
   const strength = passwordStrength();
 
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: 500,
-    color: '#1F2937',
-    marginBottom: '8px',
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '14px',
-    border: '2px solid #E5E7EB',
-    borderRadius: '12px',
-    fontSize: '16px',
-    backgroundColor: '#FFFFFF',
-    outline: 'none',
-    color: '#111827',
-  };
-
-  const inputErrorStyle: React.CSSProperties = {
-    ...inputStyle,
-    borderColor: '#EF4444',
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -120,118 +106,161 @@ export function SignupStep({
         totalSteps={totalSteps}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <motion.div 
+        className="space-y-5"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
         {/* Nome completo */}
-        <div>
-          <label style={labelStyle}>
-            Nome completo <span style={{ color: '#F97316' }}>*</span>
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Nome completo <span className="text-red">*</span>
           </label>
           <input
             type="text"
             value={data.firstName}
             onChange={(e) => updateData({ firstName: e.target.value })}
             placeholder="Seu nome completo"
-            style={inputStyle}
-            onFocus={(e) => e.target.style.borderColor = '#F97316'}
-            onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+            className="w-full p-4 border-2 border-gray/20 rounded-2xl text-base bg-white outline-none transition-all focus:border-red hover:border-gray/40"
           />
-        </div>
+        </motion.div>
 
         {/* Username */}
-        <div>
-          <label style={labelStyle}>
-            Nome de usuário <span style={{ color: '#F97316' }}>*</span>
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Nome de usuário <span className="text-red">*</span>
           </label>
-          <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}>@</span>
+          <div className="relative">
+            <AtSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray" />
             <input
               type="text"
               value={data.username}
               onChange={(e) => updateData({ username: e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '') })}
               placeholder="seunome"
-              style={{ ...inputStyle, paddingLeft: '32px', borderColor: usernameError ? '#EF4444' : '#E5E7EB' }}
-              onFocus={(e) => e.target.style.borderColor = '#F97316'}
-              onBlur={(e) => e.target.style.borderColor = usernameError ? '#EF4444' : '#E5E7EB'}
+              className={`
+                w-full p-4 pl-11 pr-12 border-2 rounded-2xl text-base bg-white outline-none transition-all
+                ${usernameStatus === 'taken' 
+                  ? 'border-red focus:border-red' 
+                  : usernameStatus === 'available'
+                    ? 'border-green-500 focus:border-green-500'
+                    : 'border-gray/20 focus:border-red hover:border-gray/40'
+                }
+              `}
             />
+            {/* Status indicator */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              {usernameStatus === 'checking' && (
+                <Loader2 size={18} className="text-gray animate-spin" />
+              )}
+              {usernameStatus === 'available' && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center"
+                >
+                  <Check size={12} className="text-white" />
+                </motion.div>
+              )}
+              {usernameStatus === 'taken' && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-5 h-5 rounded-full bg-red flex items-center justify-center"
+                >
+                  <X size={12} className="text-white" />
+                </motion.div>
+              )}
+            </div>
           </div>
-          <p style={{ fontSize: '12px', color: usernameError ? '#EF4444' : '#6B7280', marginTop: '4px' }}>
-            {checkingUsername ? 'Verificando...' : usernameError || USERNAME_HELP}
+          <p className={`text-xs mt-2 ${usernameStatus === 'taken' ? 'text-red' : 'text-gray'}`}>
+            {usernameStatus === 'taken' ? 'Esse username já está em uso' : USERNAME_HELP}
           </p>
-        </div>
+        </motion.div>
 
         {/* Email */}
-        <div>
-          <label style={labelStyle}>
-            E-mail <span style={{ color: '#F97316' }}>*</span>
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            E-mail <span className="text-red">*</span>
           </label>
           <input
             type="email"
             value={data.email}
             onChange={(e) => updateData({ email: e.target.value })}
             placeholder="seu@email.com"
-            style={emailError ? inputErrorStyle : inputStyle}
-            onFocus={(e) => e.target.style.borderColor = '#F97316'}
-            onBlur={(e) => e.target.style.borderColor = emailError ? '#EF4444' : '#E5E7EB'}
+            className={`
+              w-full p-4 border-2 rounded-2xl text-base bg-white outline-none transition-all
+              ${emailError 
+                ? 'border-red focus:border-red' 
+                : 'border-gray/20 focus:border-red hover:border-gray/40'
+              }
+            `}
           />
-          {emailError && <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>{emailError}</p>}
-        </div>
+          {emailError && (
+            <motion.p 
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-red mt-2"
+            >
+              {emailError}
+            </motion.p>
+          )}
+        </motion.div>
 
         {/* Senha */}
-        <div>
-          <label style={labelStyle}>
-            Senha <span style={{ color: '#F97316' }}>*</span>
+        <motion.div variants={itemVariants}>
+          <label className="block text-sm font-medium text-dark mb-2">
+            Senha <span className="text-red">*</span>
           </label>
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
               value={data.password}
               onChange={(e) => updateData({ password: e.target.value })}
               placeholder="Mínimo 8 caracteres"
-              style={{ ...inputStyle, paddingRight: '48px' }}
-              onFocus={(e) => e.target.style.borderColor = '#F97316'}
-              onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
+              className="w-full p-4 pr-12 border-2 border-gray/20 rounded-2xl text-base bg-white outline-none transition-all focus:border-red hover:border-gray/40"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              style={{ 
-                position: 'absolute', 
-                right: '12px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                background: 'none', 
-                border: 'none', 
-                cursor: 'pointer', 
-                color: '#9CA3AF' 
-              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray hover:text-dark transition-colors"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-            <p style={{ fontSize: '12px', color: '#6B7280' }}>Mínimo {PASSWORD_MIN_LENGTH} caracteres</p>
-            {strength && (
-              <p style={{ fontSize: '12px', color: strength.color }}>
+          
+          {/* Password strength */}
+          {strength && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 h-1 bg-gray/20 rounded-full overflow-hidden">
+                <motion.div
+                  className={`h-full ${strength.bg}`}
+                  initial={{ width: 0 }}
+                  animate={{ 
+                    width: strength.label === 'Muito curta' ? '33%' 
+                      : strength.label === 'Ok' ? '66%' 
+                      : '100%' 
+                  }}
+                />
+              </div>
+              <span className={`text-xs font-medium ${strength.color}`}>
                 {strength.label}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+              </span>
+            </div>
+          )}
+        </motion.div>
 
-      {error && (
-        <p style={{ 
-          fontSize: '14px', 
-          color: '#EF4444', 
-          textAlign: 'center', 
-          backgroundColor: '#FEF2F2', 
-          padding: '12px', 
-          borderRadius: '8px',
-          marginTop: '16px',
-        }}>
-          {error}
-        </p>
-      )}
+        {/* Error message */}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-red/10 border border-red/20"
+          >
+            <p className="text-sm text-red text-center">{error}</p>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }

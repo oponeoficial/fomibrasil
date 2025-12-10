@@ -1,9 +1,6 @@
 /**
  * FOMÍ - useOnboarding Hook
- * Gerencia estado e navegação do onboarding v2
- * 
- * IMPORTANTE: O perfil é criado automaticamente pelo trigger no Supabase
- * Este código NÃO tenta criar o perfil diretamente (evita erro de RLS)
+ * Gerencia estado e navegação do onboarding v3
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -26,6 +23,7 @@ interface UseOnboardingReturn {
   loading: boolean;
   error: string | null;
   canContinue: boolean;
+  direction: 'forward' | 'backward';
   updateData: (partial: Partial<OnboardingData>) => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -42,6 +40,7 @@ export function useOnboarding(): UseOnboardingReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(false);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
   const step = STEP_ORDER[stepIndex];
   const totalSteps = STEP_ORDER.length;
@@ -51,7 +50,7 @@ export function useOnboarding(): UseOnboardingReturn {
     setError(null);
   }, []);
 
-  // Validação por step - com null-safety
+  // Validação por step
   const canContinue = useMemo(() => {
     switch (step) {
       case 'signup':
@@ -103,6 +102,7 @@ export function useOnboarding(): UseOnboardingReturn {
 
   const nextStep = useCallback(() => {
     if (stepIndex < totalSteps - 1) {
+      setDirection('forward');
       setStepIndex((i) => i + 1);
       setError(null);
     }
@@ -110,6 +110,7 @@ export function useOnboarding(): UseOnboardingReturn {
 
   const prevStep = useCallback(() => {
     if (stepIndex > 0) {
+      setDirection('backward');
       setStepIndex((i) => i - 1);
       setError(null);
     }
@@ -118,10 +119,11 @@ export function useOnboarding(): UseOnboardingReturn {
   const goToStep = useCallback((targetStep: OnboardingStep) => {
     const index = STEP_ORDER.indexOf(targetStep);
     if (index >= 0) {
+      setDirection(index > stepIndex ? 'forward' : 'backward');
       setStepIndex(index);
       setError(null);
     }
-  }, []);
+  }, [stepIndex]);
 
   const submitSignup = useCallback(async (): Promise<boolean> => {
     setLoading(true);
@@ -141,10 +143,9 @@ export function useOnboarding(): UseOnboardingReturn {
         return false;
       }
 
-      // 2. Criar conta no Supabase Auth
-      // O trigger handle_new_user() cria o perfil automaticamente
       const fullName = (data.firstName ?? '').trim();
-      
+
+      // 2. Criar conta no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -174,9 +175,6 @@ export function useOnboarding(): UseOnboardingReturn {
         return false;
       }
 
-      // NÃO tentamos criar perfil aqui - o trigger cuida disso
-      // Isso evita erro de RLS quando email não está confirmado
-      
       console.log('Usuário criado com sucesso:', authData.user.id);
       setLoading(false);
       return true;
@@ -295,6 +293,7 @@ export function useOnboarding(): UseOnboardingReturn {
     loading,
     error,
     canContinue,
+    direction,
     updateData,
     nextStep,
     prevStep,
@@ -304,45 +303,4 @@ export function useOnboarding(): UseOnboardingReturn {
     requestLocation,
     resendEmail,
   };
-}
-
-// ============================================================================
-// HELPER: Toggle chip selection com validação min/max
-// ============================================================================
-
-export function toggleChipSelection(
-  current: string[],
-  chipId: string,
-  validation?: { min: number; max: number }
-): string[] {
-  const isSelected = current.includes(chipId);
-
-  if (isSelected) {
-    return current.filter((id) => id !== chipId);
-  }
-
-  if (validation && current.length >= validation.max) {
-    return current;
-  }
-
-  return [...current, chipId];
-}
-
-// ============================================================================
-// HELPER: Toggle restrição com lógica especial do "none"
-// ============================================================================
-
-export function toggleRestriction(current: string[], chipId: string): string[] {
-  if (chipId === 'none') {
-    return ['none'];
-  }
-
-  const withoutNone = current.filter((id) => id !== 'none');
-
-  if (withoutNone.includes(chipId)) {
-    const result = withoutNone.filter((id) => id !== chipId);
-    return result.length === 0 ? ['none'] : result;
-  }
-
-  return [...withoutNone, chipId];
 }

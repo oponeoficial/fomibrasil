@@ -3,6 +3,7 @@
  * Frequência + Tipo de lugar + Estilo de decisão
  */
 
+import { motion } from 'framer-motion';
 import type { OnboardingData } from '../types';
 import {
   STEP_CONTENT,
@@ -12,7 +13,7 @@ import {
   DECISION_STYLE_OPTIONS,
   DECISION_STYLE_VALIDATION,
 } from '../constants';
-import { StepHeader } from '../components/UI';
+import { StepHeader, SectionTitle } from '../components/UI';
 import { ChipSelector, SingleSelect } from '../components/ChipSelector';
 
 interface StyleStepProps {
@@ -33,11 +34,17 @@ export function StyleStep({
 }: StyleStepProps) {
   const content = STEP_CONTENT.style;
 
-  const sectionTitleStyle: React.CSSProperties = {
-    fontWeight: 600,
-    color: '#111827',
-    fontSize: '16px',
-    marginBottom: '12px',
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
   };
 
   return (
@@ -51,50 +58,48 @@ export function StyleStep({
         totalSteps={totalSteps}
       />
 
-      {/* Seção 1: Frequência (seleção única) */}
-      <div style={{ marginBottom: '32px' }}>
-        <h3 style={sectionTitleStyle}>
-          {content.frequencyQuestion}
-        </h3>
-        <SingleSelect
-          options={FREQUENCY_OPTIONS}
-          selected={data.frequency}
-          onChange={(v) => updateData({ frequency: v })}
-        />
-      </div>
+      <motion.div
+        className="space-y-10"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        {/* Seção 1: Frequência */}
+        <motion.div variants={itemVariants}>
+          <SectionTitle>{content.frequencyQuestion}</SectionTitle>
+          <SingleSelect
+            options={FREQUENCY_OPTIONS}
+            selected={data.frequency}
+            onChange={(v) => updateData({ frequency: v })}
+          />
+        </motion.div>
 
-      {/* Seção 2: Tipo de lugar (2-5) */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ marginBottom: '12px' }}>
-          <h3 style={sectionTitleStyle}>
+        {/* Seção 2: Tipo de lugar */}
+        <motion.div variants={itemVariants}>
+          <SectionTitle subtitle={content.placeTypeHelper}>
             {content.placeTypeQuestion}
-          </h3>
-          <p style={{ fontSize: '14px', color: '#6B7280' }}>
-            {content.placeTypeHelper}
-          </p>
-        </div>
-        <ChipSelector
-          options={PLACE_TYPE_OPTIONS}
-          selected={data.placeTypes}
-          onChange={(v) => updateData({ placeTypes: v })}
-          validation={PLACE_TYPE_VALIDATION}
-          columns={2}
-        />
-      </div>
+          </SectionTitle>
+          <ChipSelector
+            options={PLACE_TYPE_OPTIONS}
+            selected={data.placeTypes}
+            onChange={(v) => updateData({ placeTypes: v })}
+            validation={PLACE_TYPE_VALIDATION}
+            columns={2}
+          />
+        </motion.div>
 
-      {/* Seção 3: Estilo de decisão (1-2) */}
-      <div>
-        <h3 style={sectionTitleStyle}>
-          {content.decisionQuestion}
-        </h3>
-        <ChipSelector
-          options={DECISION_STYLE_OPTIONS}
-          selected={data.decisionStyle}
-          onChange={(v) => updateData({ decisionStyle: v })}
-          validation={DECISION_STYLE_VALIDATION}
-          columns={2}
-        />
-      </div>
+        {/* Seção 3: Estilo de decisão */}
+        <motion.div variants={itemVariants}>
+          <SectionTitle>{content.decisionQuestion}</SectionTitle>
+          <ChipSelector
+            options={DECISION_STYLE_OPTIONS}
+            selected={data.decisionStyle}
+            onChange={(v) => updateData({ decisionStyle: v })}
+            validation={DECISION_STYLE_VALIDATION}
+            columns={2}
+          />
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

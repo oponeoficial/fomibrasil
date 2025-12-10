@@ -1,32 +1,24 @@
 /**
- * FOMÍ - ChipSelector Component
- * Seleção de chips com validação min/max e grupos opcionais
- * Visual vibrante com cores sólidas
+ * FOMÍ - Onboarding v3 ChipSelector
+ * Chips animados com ícones Lucide
  */
 
 import { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check } from 'lucide-react';
 import type { ChipOption, ChipValidation } from '../types';
 
-// Cores da paleta Fomí
-const COLORS = {
-  primary: '#F97316',      // Laranja vibrante
-  primaryLight: '#FFF7ED', // Laranja claro (fundo selecionado suave)
-  white: '#FFFFFF',
-  dark: '#1F2937',
-  gray: '#6B7280',
-  grayLight: '#E5E7EB',
-  grayBg: '#F9FAFB',
-  error: '#EF4444',
-};
+// ============================================================================
+// MULTI SELECT CHIPS
+// ============================================================================
 
 interface ChipSelectorProps {
   options: ChipOption[];
   selected: string[];
   onChange: (selected: string[]) => void;
   validation?: ChipValidation;
-  groups?: { id: string; label: string }[];
+  groups?: { id: string; label: string; icon?: React.ComponentType<{ size?: number; className?: string }> }[];
   columns?: 2 | 3;
-  showEmoji?: boolean;
 }
 
 export function ChipSelector({
@@ -36,7 +28,6 @@ export function ChipSelector({
   validation,
   groups,
   columns = 2,
-  showEmoji = true,
 }: ChipSelectorProps) {
   const isValid = useMemo(() => {
     if (!validation) return true;
@@ -53,153 +44,309 @@ export function ChipSelector({
     }
   };
 
-  const renderChip = (option: ChipOption) => {
+  const renderChip = (option: ChipOption, index: number) => {
     const isSelected = selected.includes(option.id);
     const isDisabled = !isSelected && validation && selected.length >= validation.max;
-
-    const chipStyle: React.CSSProperties = {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      padding: '14px 16px',
-      borderRadius: '12px',
-      fontSize: '14px',
-      fontWeight: 500,
-      transition: 'all 0.2s',
-      border: isSelected ? `2px solid ${COLORS.primary}` : `2px solid ${COLORS.grayLight}`,
-      backgroundColor: isSelected ? COLORS.primary : COLORS.white,
-      color: isSelected ? COLORS.white : COLORS.dark,
-      boxShadow: isSelected ? '0 4px 12px rgba(249, 115, 22, 0.3)' : 'none',
-      opacity: isDisabled ? 0.5 : 1,
-      cursor: isDisabled ? 'not-allowed' : 'pointer',
-      width: '100%',
-      textAlign: 'left' as const,
-    };
+    const Icon = option.icon;
 
     return (
-      <button
+      <motion.button
         key={option.id}
         type="button"
         onClick={() => !isDisabled && handleToggle(option.id)}
         disabled={isDisabled}
-        style={chipStyle}
+        className={`
+          relative flex items-center gap-3 p-4 rounded-2xl text-left
+          transition-all duration-300 border-2 w-full
+          ${isSelected 
+            ? 'bg-red text-white border-red shadow-lg shadow-red/20' 
+            : 'bg-white text-dark border-gray/20 hover:border-red/30 hover:shadow-md'
+          }
+          ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+        `}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03 }}
+        whileHover={!isDisabled ? { scale: 1.02 } : {}}
+        whileTap={!isDisabled ? { scale: 0.98 } : {}}
       >
-        {showEmoji && <span style={{ fontSize: '18px' }}>{option.emoji}</span>}
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {/* Icon */}
+        <div className={`
+          flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center
+          ${isSelected ? 'bg-white/20' : 'bg-red/10'}
+        `}>
+          <Icon 
+            size={20} 
+            className={isSelected ? 'text-white' : 'text-red'} 
+          />
+        </div>
+
+        {/* Label */}
+        <span className="font-medium text-sm leading-tight flex-1">
           {option.label}
         </span>
-      </button>
+
+        {/* Selected indicator */}
+        <AnimatePresence>
+          {isSelected && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white flex items-center justify-center"
+            >
+              <Check size={12} className="text-red" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
     );
   };
 
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: columns === 3 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-    gap: '10px',
-  };
+  const gridClass = columns === 3 
+    ? 'grid grid-cols-3 gap-3' 
+    : 'grid grid-cols-2 gap-3';
 
-  const validationStyle: React.CSSProperties = {
-    fontSize: '14px',
-    textAlign: 'center',
-    color: isValid ? COLORS.gray : COLORS.error,
-    marginBottom: '16px',
-    fontWeight: 500,
-  };
-
-  // Renderizar com grupos
+  // Render with groups
   if (groups && groups.length > 0) {
     return (
-      <div>
+      <div className="space-y-6">
+        {/* Validation counter */}
         {validation && (
-          <p style={validationStyle}>
-            {validation.message} ({selected.length}/{validation.max})
-          </p>
+          <motion.div 
+            className={`
+              text-center text-sm font-medium py-2 px-4 rounded-full inline-flex mx-auto
+              ${isValid ? 'bg-green-100 text-green-700' : 'bg-red/10 text-red'}
+            `}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {selected.length}/{validation.max} selecionados
+          </motion.div>
         )}
 
         {groups.map((group) => {
           const groupOptions = options.filter((o) => o.group === group.id);
           if (groupOptions.length === 0) return null;
 
+          const GroupIcon = group.icon;
+
           return (
-            <div key={group.id} style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: 600, color: COLORS.dark, marginBottom: '12px' }}>
-                {group.label}
-              </h4>
-              <div style={gridStyle}>
-                {groupOptions.map(renderChip)}
+            <motion.div 
+              key={group.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                {GroupIcon && <GroupIcon size={18} className="text-red" />}
+                <h4 className="font-semibold text-dark text-sm">
+                  {group.label}
+                </h4>
               </div>
-            </div>
+              <div className={gridClass}>
+                {groupOptions.map((option, idx) => renderChip(option, idx))}
+              </div>
+            </motion.div>
           );
         })}
       </div>
     );
   }
 
-  // Renderizar sem grupos
+  // Render without groups
   return (
-    <div>
+    <div className="space-y-4">
       {validation && (
-        <p style={validationStyle}>
+        <motion.div 
+          className={`
+            text-center text-sm font-medium py-2 px-4 rounded-full
+            ${isValid ? 'bg-green-100 text-green-700' : 'bg-red/10 text-red'}
+          `}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           {validation.message} ({selected.length}/{validation.max})
-        </p>
+        </motion.div>
       )}
-      <div style={gridStyle}>
-        {options.map(renderChip)}
+      <div className={gridClass}>
+        {options.map((option, idx) => renderChip(option, idx))}
       </div>
     </div>
   );
 }
 
 // ============================================================================
-// SINGLE SELECT VARIANT
+// SINGLE SELECT CHIPS
 // ============================================================================
 
 interface SingleSelectProps {
   options: ChipOption[];
   selected: string | null;
   onChange: (selected: string | null) => void;
-  showEmoji?: boolean;
 }
 
 export function SingleSelect({
   options,
   selected,
   onChange,
-  showEmoji = true,
 }: SingleSelectProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {options.map((option) => {
+    <div className="space-y-3">
+      {options.map((option, index) => {
         const isSelected = selected === option.id;
-
-        const chipStyle: React.CSSProperties = {
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '14px 16px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: 500,
-          transition: 'all 0.2s',
-          border: isSelected ? `2px solid ${COLORS.primary}` : `2px solid ${COLORS.grayLight}`,
-          backgroundColor: isSelected ? COLORS.primary : COLORS.white,
-          color: isSelected ? COLORS.white : COLORS.dark,
-          boxShadow: isSelected ? '0 4px 12px rgba(249, 115, 22, 0.3)' : 'none',
-          cursor: 'pointer',
-          textAlign: 'left' as const,
-          width: '100%',
-        };
+        const Icon = option.icon;
 
         return (
-          <button
+          <motion.button
             key={option.id}
             type="button"
             onClick={() => onChange(isSelected ? null : option.id)}
-            style={chipStyle}
+            className={`
+              relative flex items-center gap-4 p-4 rounded-2xl w-full text-left
+              transition-all duration-300 border-2
+              ${isSelected 
+                ? 'bg-red text-white border-red shadow-lg shadow-red/20' 
+                : 'bg-white text-dark border-gray/20 hover:border-red/30 hover:shadow-md'
+              }
+            `}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
-            {showEmoji && <span style={{ fontSize: '18px' }}>{option.emoji}</span>}
-            <span>{option.label}</span>
-          </button>
+            {/* Icon */}
+            <div className={`
+              flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
+              ${isSelected ? 'bg-white/20' : 'bg-red/10'}
+            `}>
+              <Icon 
+                size={24} 
+                className={isSelected ? 'text-white' : 'text-red'} 
+              />
+            </div>
+
+            {/* Label */}
+            <span className="font-medium flex-1">
+              {option.label}
+            </span>
+
+            {/* Radio indicator */}
+            <div className={`
+              w-6 h-6 rounded-full border-2 flex items-center justify-center
+              ${isSelected 
+                ? 'border-white bg-white' 
+                : 'border-gray/30'
+              }
+            `}>
+              {isSelected && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-3 h-3 rounded-full bg-red"
+                />
+              )}
+            </div>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
+// RESTRICTION SELECTOR (Special logic for "none")
+// ============================================================================
+
+interface RestrictionSelectorProps {
+  options: ChipOption[];
+  selected: string[];
+  onChange: (selected: string[]) => void;
+}
+
+export function RestrictionSelector({
+  options,
+  selected,
+  onChange,
+}: RestrictionSelectorProps) {
+  const handleToggle = (chipId: string) => {
+    if (chipId === 'none') {
+      onChange(['none']);
+      return;
+    }
+
+    const withoutNone = selected.filter((id) => id !== 'none');
+
+    if (withoutNone.includes(chipId)) {
+      const result = withoutNone.filter((id) => id !== chipId);
+      onChange(result.length === 0 ? ['none'] : result);
+    } else {
+      onChange([...withoutNone, chipId]);
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {options.map((option, index) => {
+        const isSelected = selected.includes(option.id);
+        const isNone = option.id === 'none';
+        const Icon = option.icon;
+
+        return (
+          <motion.button
+            key={option.id}
+            type="button"
+            onClick={() => handleToggle(option.id)}
+            className={`
+              relative flex items-center gap-3 p-4 rounded-2xl text-left
+              transition-all duration-300 border-2
+              ${isNone ? 'col-span-2' : ''}
+              ${isSelected 
+                ? isNone
+                  ? 'bg-green-500 text-white border-green-500 shadow-lg shadow-green-500/20'
+                  : 'bg-red text-white border-red shadow-lg shadow-red/20' 
+                : 'bg-white text-dark border-gray/20 hover:border-red/30 hover:shadow-md'
+              }
+            `}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {/* Icon */}
+            <div className={`
+              flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center
+              ${isSelected 
+                ? 'bg-white/20' 
+                : isNone ? 'bg-green-100' : 'bg-red/10'
+              }
+            `}>
+              <Icon 
+                size={20} 
+                className={isSelected ? 'text-white' : isNone ? 'text-green-600' : 'text-red'} 
+              />
+            </div>
+
+            {/* Label */}
+            <span className="font-medium text-sm flex-1">
+              {option.label}
+            </span>
+
+            {/* Selected indicator */}
+            <AnimatePresence>
+              {isSelected && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="w-5 h-5 rounded-full bg-white flex items-center justify-center"
+                >
+                  <Check size={12} className={isNone ? 'text-green-500' : 'text-red'} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
         );
       })}
     </div>
