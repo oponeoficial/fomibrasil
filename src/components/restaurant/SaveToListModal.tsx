@@ -1,13 +1,13 @@
 /**
  * Modal para selecionar em qual lista salvar o restaurante
+ * Versão otimizada - carregamento em paralelo
  */
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Check, Loader2, Heart, Bookmark, MapPin, Sparkles } from 'lucide-react';
+import { X, Plus, Check, Loader2, Heart } from 'lucide-react';
 import { useSavedLists, SavedList } from '../../hooks/useSavedLists';
 
-// Ícones disponíveis para listas
 const AVAILABLE_ICONS = [
   { id: '❤️', icon: '❤️' },
   { id: '⭐', icon: '⭐' },
@@ -38,30 +38,44 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
   restaurantName,
   onSaved,
 }) => {
-  const { lists, loading, createList, saveToList, removeFromList, getRestaurantLists } = useSavedLists();
+  const { lists, loading: listsLoading, createList, saveToList, removeFromList, getRestaurantLists } = useSavedLists();
   
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [initialLists, setInitialLists] = useState<string[]>([]);
-  const [loadingLists, setLoadingLists] = useState(true);
+  const [loadingRestaurantLists, setLoadingRestaurantLists] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCreateNew, setShowCreateNew] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListIcon, setNewListIcon] = useState('❤️');
   const [creatingList, setCreatingList] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  // Carregar listas em que o restaurante já está
+  // Carregar listas do restaurante apenas quando o modal abre
   useEffect(() => {
-    if (isOpen && restaurantId) {
-      setLoadingLists(true);
-      getRestaurantLists(restaurantId).then(listIds => {
-        setSelectedLists(listIds);
-        setInitialLists(listIds);
-        setLoadingLists(false);
-      });
+    if (isOpen && restaurantId && !initialized) {
+      setLoadingRestaurantLists(true);
+      getRestaurantLists(restaurantId)
+        .then(listIds => {
+          setSelectedLists(listIds);
+          setInitialLists(listIds);
+          setInitialized(true);
+        })
+        .finally(() => {
+          setLoadingRestaurantLists(false);
+        });
+    }
+    
+    // Reset quando fecha
+    if (!isOpen) {
+      setInitialized(false);
+      setSelectedLists([]);
+      setInitialLists([]);
+      setShowCreateNew(false);
+      setNewListName('');
+      setNewListIcon('❤️');
     }
   }, [isOpen, restaurantId]);
 
-  // Toggle seleção de lista
   const toggleList = (listId: string) => {
     setSelectedLists(prev => 
       prev.includes(listId)
@@ -70,7 +84,6 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
     );
   };
 
-  // Criar nova lista
   const handleCreateList = async () => {
     if (!newListName.trim()) return;
 
@@ -87,16 +100,13 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
     setCreatingList(false);
   };
 
-  // Salvar alterações
   const handleSave = async () => {
     setSaving(true);
 
-    // Listas para adicionar
     const toAdd = selectedLists.filter(id => !initialLists.includes(id));
-    // Listas para remover
     const toRemove = initialLists.filter(id => !selectedLists.includes(id));
 
-    // Executar operações
+    // Executar em paralelo
     await Promise.all([
       ...toAdd.map(listId => saveToList(restaurantId, listId)),
       ...toRemove.map(listId => removeFromList(restaurantId, listId)),
@@ -107,8 +117,8 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
     onClose();
   };
 
-  // Verificar se houve mudanças
   const hasChanges = JSON.stringify(selectedLists.sort()) !== JSON.stringify(initialLists.sort());
+  const isLoading = listsLoading || loadingRestaurantLists;
 
   if (!isOpen) return null;
 
@@ -145,13 +155,12 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
 
           {/* Content */}
           <div className="p-4 overflow-y-auto max-h-[60vh]">
-            {loading || loadingLists ? (
+            {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 size={24} className="text-red animate-spin" />
               </div>
             ) : (
               <div className="space-y-2">
-                {/* Listas existentes */}
                 {lists.map(list => (
                   <ListItem
                     key={list.id}
@@ -161,7 +170,6 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
                   />
                 ))}
 
-                {/* Criar nova lista */}
                 {showCreateNew ? (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -177,7 +185,6 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
                       autoFocus
                     />
 
-                    {/* Seletor de ícone */}
                     <div>
                       <p className="text-sm text-gray mb-2">Escolha um ícone</p>
                       <div className="flex flex-wrap gap-2">
@@ -197,7 +204,6 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Botões */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowCreateNew(false)}
@@ -262,7 +268,6 @@ export const SaveToListModal: React.FC<SaveToListModalProps> = ({
   );
 };
 
-// Componente de item da lista
 interface ListItemProps {
   list: SavedList;
   selected: boolean;
@@ -280,14 +285,12 @@ const ListItem: React.FC<ListItemProps> = ({ list, selected, onToggle }) => {
       }`}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Ícone */}
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
         selected ? 'bg-red/20' : 'bg-white'
       }`}>
-        {list.icon}
+        {list.icon || '📁'}
       </div>
 
-      {/* Info */}
       <div className="flex-1 text-left">
         <p className={`font-semibold ${selected ? 'text-red' : 'text-dark'}`}>
           {list.name}
@@ -297,7 +300,6 @@ const ListItem: React.FC<ListItemProps> = ({ list, selected, onToggle }) => {
         </p>
       </div>
 
-      {/* Checkbox */}
       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
         selected
           ? 'bg-red border-red'

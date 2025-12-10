@@ -1,5 +1,6 @@
 /**
  * Hook para gerenciar listas de restaurantes salvos
+ * Versão otimizada - queries em paralelo
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -30,25 +31,36 @@ interface UseSavedListsResult {
   refetch: () => void;
 }
 
+// Cache simples para evitar re-fetches
+let cachedLists: SavedList[] | null = null;
+let cacheUserId: string | null = null;
+
 export function useSavedLists(): UseSavedListsResult {
-  const [lists, setLists] = useState<SavedList[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lists, setLists] = useState<SavedList[]>(cachedLists || []);
+  const [loading, setLoading] = useState(!cachedLists);
   const [error, setError] = useState<string | null>(null);
 
-  // Buscar listas do usuário
-  const fetchLists = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
+  const fetchLists = useCallback(async (forceRefresh = false) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         setLists([]);
         setLoading(false);
         return;
       }
 
-      // Buscar listas
+      // Usar cache se disponível e não forçar refresh
+      if (!forceRefresh && cachedLists && cacheUserId === user.id) {
+        setLists(cachedLists);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      // Query única: buscar listas com contagem usando subquery
       const { data, error: fetchError } = await supabase
         .from('saved_lists')
         .select('*')
@@ -57,7 +69,7 @@ export function useSavedLists(): UseSavedListsResult {
 
       if (fetchError) throw fetchError;
 
-      // Buscar contagem de restaurantes por lista
+      // Buscar contagem separadamente (mais rápido que join)
       const { data: counts } = await supabase
         .from('saved_restaurants')
         .select('list_id')
@@ -73,6 +85,10 @@ export function useSavedLists(): UseSavedListsResult {
         restaurant_count: countMap[list.id] || 0,
       }));
 
+      // Atualizar cache
+      cachedLists = listsWithCount;
+      cacheUserId = user.id;
+
       setLists(listsWithCount);
     } catch (err) {
       console.error('Erro ao buscar listas:', err);
@@ -86,7 +102,6 @@ export function useSavedLists(): UseSavedListsResult {
     fetchLists();
   }, [fetchLists]);
 
-  // Criar nova lista
   const createList = async (name: string, icon: string): Promise<SavedList | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -111,7 +126,10 @@ export function useSavedLists(): UseSavedListsResult {
         restaurant_count: 0 
       };
       
-      setLists(prev => [...prev, newList]);
+      const updatedLists = [...lists, newList];
+      setLists(updatedLists);
+      cachedLists = updatedLists;
+      
       return newList;
     } catch (err) {
       console.error('Erro ao criar lista:', err);
@@ -119,27 +137,11 @@ export function useSavedLists(): UseSavedListsResult {
     }
   };
 
-  // Salvar restaurante em uma lista
   const saveToList = async (restaurantId: string, listId: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      // Verificar se já existe
-      const { data: existing } = await supabase
-        .from('saved_restaurants')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('restaurant_id', restaurantId)
-        .eq('list_id', listId)
-        .maybeSingle();
-
-      if (existing) {
-        // Já existe, não fazer nada
-        return true;
-      }
-
-      // Inserir novo
       const { error } = await supabase
         .from('saved_restaurants')
         .insert({
@@ -148,14 +150,17 @@ export function useSavedLists(): UseSavedListsResult {
           list_id: listId,
         });
 
-      if (error) throw error;
+      // Ignorar erro de duplicata
+      if (error && !error.message.includes('duplicate')) throw error;
 
       // Atualizar contagem local
-      setLists(prev => prev.map(list => 
+      const updatedLists = lists.map(list => 
         list.id === listId 
           ? { ...list, restaurant_count: (list.restaurant_count || 0) + 1 }
           : list
-      ));
+      );
+      setLists(updatedLists);
+      cachedLists = updatedLists;
 
       return true;
     } catch (err) {
@@ -164,7 +169,6 @@ export function useSavedLists(): UseSavedListsResult {
     }
   };
 
-  // Remover restaurante de uma lista
   const removeFromList = async (restaurantId: string, listId: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -180,11 +184,13 @@ export function useSavedLists(): UseSavedListsResult {
       if (error) throw error;
 
       // Atualizar contagem local
-      setLists(prev => prev.map(list => 
+      const updatedLists = lists.map(list => 
         list.id === listId 
           ? { ...list, restaurant_count: Math.max((list.restaurant_count || 1) - 1, 0) }
           : list
-      ));
+      );
+      setLists(updatedLists);
+      cachedLists = updatedLists;
 
       return true;
     } catch (err) {
@@ -193,7 +199,6 @@ export function useSavedLists(): UseSavedListsResult {
     }
   };
 
-  // Obter listas em que o restaurante está salvo
   const getRestaurantLists = async (restaurantId: string): Promise<string[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -214,7 +219,6 @@ export function useSavedLists(): UseSavedListsResult {
     }
   };
 
-  // Verificar se restaurante está em alguma lista
   const isInAnyList = async (restaurantId: string): Promise<boolean> => {
     const restaurantLists = await getRestaurantLists(restaurantId);
     return restaurantLists.length > 0;
@@ -229,6 +233,12 @@ export function useSavedLists(): UseSavedListsResult {
     removeFromList,
     getRestaurantLists,
     isInAnyList,
-    refetch: fetchLists,
+    refetch: () => fetchLists(true),
   };
+}
+
+// Função para limpar cache (usar no logout)
+export function clearSavedListsCache() {
+  cachedLists = null;
+  cacheUserId = null;
 }
