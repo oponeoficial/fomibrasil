@@ -5,7 +5,7 @@ import { Restaurant } from '../../types';
 interface RestaurantCardProps {
   restaurant: Restaurant;
   onSelect: (restaurant: Restaurant) => void;
-  onSave: (id: number) => void;
+  onSave: (id: string | number) => void;
   isSaved: boolean;
 }
 
@@ -26,6 +26,9 @@ const tagTextColors: Record<string, string> = {
 };
 
 export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSelect, onSave, isSaved }) => {
+  // Usar cover_image do Google, fallback para image local
+  const coverImage = restaurant.cover_image || restaurant.image || '/placeholder-restaurant.jpg';
+
   return (
     <div
       onClick={() => onSelect(restaurant)}
@@ -34,9 +37,13 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
       {/* Image */}
       <div className="relative h-[200px]">
         <img
-          src={restaurant.image}
+          src={coverImage}
           alt={restaurant.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback se a imagem falhar
+            (e.target as HTMLImageElement).src = '/placeholder-restaurant.jpg';
+          }}
         />
 
         {/* Gradient Overlay */}
@@ -62,10 +69,12 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
         </div>
 
         {/* Distance */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2.5 py-1.5 rounded-full text-white text-xs">
-          <MapPin size={12} />
-          <span>{restaurant.distance}</span>
-        </div>
+        {restaurant.distance && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/70 backdrop-blur-sm px-2.5 py-1.5 rounded-full text-white text-xs">
+            <MapPin size={12} />
+            <span>{restaurant.distance}</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -75,21 +84,25 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
         </h3>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {restaurant.tags.slice(0, 3).map((tag, index) => (
-            <span
-              key={index}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${tagBgColors[tag.color] || 'bg-blue-500/15'} ${tagTextColors[tag.color] || 'text-blue-500'}`}
-            >
-              {tag.text}
-            </span>
-          ))}
-        </div>
+        {restaurant.tags && restaurant.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {restaurant.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium ${tagBgColors[tag.color] || 'bg-blue-500/15'} ${tagTextColors[tag.color] || 'text-blue-500'}`}
+              >
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Description */}
-        <p className="text-sm text-gray leading-snug line-clamp-2">
-          {restaurant.description}
-        </p>
+        {restaurant.description && (
+          <p className="text-sm text-gray leading-snug line-clamp-2">
+            {restaurant.description}
+          </p>
+        )}
       </div>
     </div>
   );

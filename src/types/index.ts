@@ -52,6 +52,7 @@ export interface RestaurantTag {
  * Combina dados do banco com campos calculados
  */
 export interface Restaurant {
+  [x: string]: string | null;
   id: string;
   name: string;
   slug: string;
