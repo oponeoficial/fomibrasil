@@ -1,6 +1,9 @@
 /**
  * FOMÍ - useOnboarding Hook
  * Gerencia estado e navegação do onboarding v2
+ * 
+ * IMPORTANTE: O perfil é criado automaticamente pelo trigger no Supabase
+ * Este código NÃO tenta criar o perfil diretamente (evita erro de RLS)
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -28,6 +31,7 @@ interface UseOnboardingReturn {
   prevStep: () => void;
   goToStep: (step: OnboardingStep) => void;
   submitSignup: () => Promise<boolean>;
+  savePreferences: () => Promise<boolean>;
   requestLocation: () => Promise<void>;
   resendEmail: () => Promise<void>;
 }
@@ -47,45 +51,44 @@ export function useOnboarding(): UseOnboardingReturn {
     setError(null);
   }, []);
 
-  // Validação por step
+  // Validação por step - com null-safety
   const canContinue = useMemo(() => {
     switch (step) {
       case 'signup':
         return (
-          data.firstName.trim().length >= 3 &&
-          USERNAME_REGEX.test(data.username) &&
-          data.email.includes('@') &&
-          data.email.includes('.') &&
-          data.password.length >= PASSWORD_MIN_LENGTH
+          (data.firstName?.trim()?.length ?? 0) >= 2 &&
+          USERNAME_REGEX.test(data.username ?? '') &&
+          (data.email ?? '').includes('@') &&
+          (data.password?.length ?? 0) >= PASSWORD_MIN_LENGTH
         );
 
       case 'profile':
         return (
-          data.birthDate !== '' &&
-          data.city.trim().length >= 2 &&
-          data.neighborhood.trim().length >= 2
+          (data.birthDate ?? '') !== '' &&
+          (data.city?.trim()?.length ?? 0) >= 2 &&
+          (data.neighborhood?.trim()?.length ?? 0) >= 2
         );
 
       case 'cuisines':
-        return true; // Opcional
+        return true;
 
       case 'occasions':
         return (
-          data.occasions.length >= OCCASION_VALIDATION.min &&
-          data.occasions.length <= OCCASION_VALIDATION.max
+          (data.occasions?.length ?? 0) >= OCCASION_VALIDATION.min &&
+          (data.occasions?.length ?? 0) <= OCCASION_VALIDATION.max
         );
 
       case 'style':
         return (
           data.frequency !== null &&
-          data.placeTypes.length >= PLACE_TYPE_VALIDATION.min &&
-          data.placeTypes.length <= PLACE_TYPE_VALIDATION.max &&
-          data.decisionStyle.length >= DECISION_STYLE_VALIDATION.min &&
-          data.decisionStyle.length <= DECISION_STYLE_VALIDATION.max
+          (data.placeTypes?.length ?? 0) >= PLACE_TYPE_VALIDATION.min &&
+          (data.placeTypes?.length ?? 0) <= PLACE_TYPE_VALIDATION.max &&
+          (data.decisionStyle?.length ?? 0) >= DECISION_STYLE_VALIDATION.min &&
+          (data.decisionStyle?.length ?? 0) <= DECISION_STYLE_VALIDATION.max
         );
 
       case 'restrictions':
-        return data.restrictions.length > 0;
+        return (data.restrictions?.length ?? 0) > 0;
 
       case 'summary':
         return true;
@@ -139,20 +142,28 @@ export function useOnboarding(): UseOnboardingReturn {
       }
 
       // 2. Criar conta no Supabase Auth
-      // O trigger on_auth_user_created vai criar o perfil automaticamente
+      // O trigger handle_new_user() cria o perfil automaticamente
+      const fullName = (data.firstName ?? '').trim();
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           data: {
-            full_name: data.firstName,
+            full_name: fullName,
             username: data.username,
           },
         },
       });
 
       if (authError) {
-        setError(authError.message);
+        if (authError.message.includes('already registered')) {
+          setError('Este e-mail já está cadastrado');
+        } else if (authError.message.includes('invalid')) {
+          setError('E-mail ou senha inválidos');
+        } else {
+          setError(authError.message);
+        }
         setLoading(false);
         return false;
       }
@@ -163,12 +174,67 @@ export function useOnboarding(): UseOnboardingReturn {
         return false;
       }
 
+      // NÃO tentamos criar perfil aqui - o trigger cuida disso
+      // Isso evita erro de RLS quando email não está confirmado
+      
       console.log('Usuário criado com sucesso:', authData.user.id);
       setLoading(false);
       return true;
     } catch (err) {
       console.error('Erro no signup:', err);
       setError('Erro ao criar conta. Tente novamente.');
+      setLoading(false);
+      return false;
+    }
+  }, [data]);
+
+  const savePreferences = useCallback(async (): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError('Usuário não autenticado');
+        setLoading(false);
+        return false;
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          birth_date: data.birthDate || null,
+          gender: data.gender,
+          city: data.city || null,
+          neighborhood: data.neighborhood || null,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          disliked_cuisines: data.dislikedCuisines ?? [],
+          preferred_occasions: data.occasions ?? [],
+          dining_frequency: data.frequency,
+          place_types: data.placeTypes ?? [],
+          decision_style: data.decisionStyle ?? [],
+          dietary_restrictions: data.restrictions ?? [],
+          notifications_enabled: data.notificationsEnabled ?? true,
+          beta_tester: data.betaTesterEnabled ?? false,
+          onboarding_completed: true,
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Erro ao salvar preferências:', updateError);
+        setError('Erro ao salvar preferências. Tente novamente.');
+        setLoading(false);
+        return false;
+      }
+
+      console.log('Preferências salvas com sucesso para:', user.id);
+      setLoading(false);
+      return true;
+    } catch (err) {
+      console.error('Erro ao salvar preferências:', err);
+      setError('Erro ao salvar preferências. Tente novamente.');
       setLoading(false);
       return false;
     }
@@ -203,10 +269,14 @@ export function useOnboarding(): UseOnboardingReturn {
 
     setLoading(true);
     try {
-      await supabase.auth.resend({
+      const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: data.email,
       });
+
+      if (resendError) {
+        setError('Erro ao reenviar e-mail');
+      }
 
       setResendCooldown(true);
       setTimeout(() => setResendCooldown(false), 60000);
@@ -230,6 +300,7 @@ export function useOnboarding(): UseOnboardingReturn {
     prevStep,
     goToStep,
     submitSignup,
+    savePreferences,
     requestLocation,
     resendEmail,
   };

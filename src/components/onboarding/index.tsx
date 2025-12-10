@@ -4,7 +4,6 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useOnboarding } from './hooks/useOnboarding';
 import { StepContainer, FixedFooter, CTAButton } from './components/UI';
 
@@ -32,12 +31,11 @@ export function Onboarding() {
     nextStep,
     prevStep,
     submitSignup,
+    savePreferences,
     requestLocation,
-    resendEmail,
   } = useOnboarding();
 
   const handleContinue = async () => {
-    // Tratamento especial para signup
     if (step === 'signup') {
       const success = await submitSignup();
       if (success) {
@@ -46,39 +44,15 @@ export function Onboarding() {
       return;
     }
 
-    // Tratamento especial para summary (salvar preferências antes de avançar)
     if (step === 'summary') {
-      await savePreferences();
-      nextStep();
+      const success = await savePreferences();
+      if (success) {
+        nextStep();
+      }
       return;
     }
 
-    // Outros steps apenas avançam
     nextStep();
-  };
-
-  const savePreferences = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user) {
-      await supabase.from('profiles').update({
-        birth_date: data.birthDate,
-        gender: data.gender,
-        city: data.city,
-        neighborhood: data.neighborhood,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        disliked_cuisines: data.dislikedCuisines,
-        preferred_occasions: data.occasions,
-        dining_frequency: data.frequency,
-        place_types: data.placeTypes,
-        decision_style: data.decisionStyle,
-        dietary_restrictions: data.restrictions,
-        notifications_enabled: data.notificationsEnabled,
-        beta_tester: data.betaTesterEnabled,
-        onboarding_completed: true,
-      } as never).eq('id', user.id);
-    }
   };
 
   const handleFinish = () => {
@@ -135,7 +109,6 @@ export function Onboarding() {
     }
   };
 
-  // EmailConfirm tem layout próprio (sem footer padrão)
   if (step === 'email-confirm') {
     return renderStep();
   }
@@ -146,7 +119,9 @@ export function Onboarding() {
 
       <FixedFooter>
         {error && (
-          <p className="text-sm text-red-500 text-center">{error}</p>
+          <p className="text-sm text-red-500 text-center bg-red-50 p-3 rounded-lg">
+            {error}
+          </p>
         )}
         <CTAButton
           onClick={handleContinue}

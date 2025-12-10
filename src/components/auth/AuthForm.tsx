@@ -1,8 +1,8 @@
 /**
- * FOMÍ - AuthForm (Login Only)
+ * FOMÍ - AuthForm (Login by Username ou Email)
  * 
- * Signup agora acontece no final do Onboarding.
- * Este componente é apenas para login de usuários existentes.
+ * Padrão: Login usando username
+ * Alternativa: Botão para entrar com e-mail
  */
 
 import React, { useState } from 'react';
@@ -10,10 +10,25 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
+type LoginMode = 'username' | 'email';
+
+// Helper para chamar RPC não tipada
+async function getEmailByUsername(username: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc(
+    'get_email_by_username' as never,
+    { p_username: username } as never
+  );
+  
+  if (error || !data) return null;
+  return data as string;
+}
+
 export const AuthForm: React.FC = () => {
   const navigate = useNavigate();
 
   // Form state
+  const [mode, setMode] = useState<LoginMode>('username');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,8 +38,87 @@ export const AuthForm: React.FC = () => {
   const handleBack = () => navigate('/');
   const handleSignup = () => navigate('/onboarding');
 
-  // Login: forgot password
+  // Normalizar username
+  const handleUsernameChange = (value: string) => {
+    const normalized = value.toLowerCase().replace(/[^a-z0-9._]/g, '');
+    setUsername(normalized);
+  };
+
+  // Alternar modo
+  const toggleMode = () => {
+    setMode(mode === 'username' ? 'email' : 'username');
+    setError(null);
+  };
+
+  // Submit handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      let loginEmail = email;
+
+      // Se modo username, buscar email primeiro
+      if (mode === 'username') {
+        const foundEmail = await getEmailByUsername(username);
+
+        if (!foundEmail) {
+          setError('Usuário não encontrado');
+          setLoading(false);
+          return;
+        }
+
+        loginEmail = foundEmail;
+      }
+
+      // Fazer login com email + senha
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
+
+      if (authError) {
+        setError(
+          authError.message.includes('Invalid login')
+            ? mode === 'username' 
+              ? 'Usuário ou senha incorretos'
+              : 'E-mail ou senha incorretos'
+            : 'Erro ao entrar. Tente novamente.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        const profile = userProfile as { onboarding_completed?: boolean } | null;
+
+        if (profile?.onboarding_completed === false) {
+          navigate('/onboarding');
+        } else {
+          navigate('/feed');
+        }
+      }
+    } catch (err) {
+      console.error('Erro no login:', err);
+      setError('Erro ao entrar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Forgot password (só funciona com email)
   const handleForgotPassword = async () => {
+    if (mode === 'username') {
+      setError('Para recuperar senha, use o login por e-mail');
+      return;
+    }
     if (!email) {
       setError('Digite seu e-mail primeiro');
       return;
@@ -38,49 +132,9 @@ export const AuthForm: React.FC = () => {
     else alert('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
   };
 
-  // Submit handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (authError) {
-      setError(
-        authError.message.includes('Invalid login')
-          ? 'E-mail ou senha incorretos'
-          : 'Erro ao entrar. Tente novamente.'
-      );
-      return;
-    }
-    
-    if (data.user) {
-      // Verifica se onboarding foi completado
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      const profileData = profile as { onboarding_completed?: boolean } | null;
-      
-      // Vai para onboarding apenas se onboarding_completed é explicitamente false
-      // Usuários antigos (sem o campo ou com null) vão para feed
-      if (profileData && profileData.onboarding_completed === false) {
-        navigate('/onboarding');
-      } else {
-        navigate('/feed');
-      }
-    }
-  };
-
-  const isFormValid = email && password;
+  const isFormValid = mode === 'username' 
+    ? username.length >= 3 && password.length >= 8
+    : email.includes('@') && password.length >= 8;
 
   return (
     <div className="min-h-screen bg-cream flex flex-col p-6">
@@ -104,17 +158,52 @@ export const AuthForm: React.FC = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Campo de login (username ou email) + botão de alternar */}
         <div>
-          <label className="block text-sm font-medium text-dark mb-2">
-            E-mail
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="voce@exemplo.com"
-            className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none"
-          />
+          {mode === 'username' ? (
+            <>
+              <label className="block text-sm font-medium text-dark mb-2">
+                Nome de usuário
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray">@</span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="seunome"
+                  className="w-full p-3.5 pl-8 border border-gray/30 rounded-lg text-base bg-white outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="bg-transparent border-none text-gray text-sm cursor-pointer mt-2 underline"
+              >
+                Entrar com e-mail
+              </button>
+            </>
+          ) : (
+            <>
+              <label className="block text-sm font-medium text-dark mb-2">
+                E-mail
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="voce@exemplo.com"
+                className="w-full p-3.5 border border-gray/30 rounded-lg text-base bg-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="bg-transparent border-none text-gray text-sm cursor-pointer mt-2 underline"
+              >
+                Entrar com @usuário
+              </button>
+            </>
+          )}
         </div>
 
         <div>
@@ -139,13 +228,15 @@ export const AuthForm: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleForgotPassword}
-          className="bg-transparent border-none text-red text-sm cursor-pointer text-right -mt-2"
-        >
-          Esqueceu a senha?
-        </button>
+        {mode === 'email' && (
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="bg-transparent border-none text-red text-sm cursor-pointer text-right -mt-2"
+          >
+            Esqueceu a senha?
+          </button>
+        )}
 
         {error && <p className="text-red text-sm text-center">{error}</p>}
 
@@ -183,7 +274,5 @@ export const AuthForm: React.FC = () => {
   );
 };
 
-// Export para compatibilidade com rotas
 export const Login = AuthForm;
-
 export default AuthForm;

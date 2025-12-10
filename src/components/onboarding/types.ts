@@ -37,6 +37,7 @@ export interface ChipValidation {
 }
 
 export interface OnboardingData {
+  [x: string]: any;
   // Tela 1 - Signup
   firstName: string; // Nome completo
   username: string;
