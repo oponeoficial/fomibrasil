@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Star, MapPin } from 'lucide-react';
+import { Plus, Star, MapPin } from 'lucide-react';
 import { Restaurant } from '../../types';
 import { SaveToListModal } from './SaveToListModal';
 import { supabase } from '../../lib/supabase';
@@ -28,48 +28,44 @@ const tagTextColors: Record<string, string> = {
 export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSelect }) => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [checkingSaved, setCheckingSaved] = useState(true);
 
   // Usar cover_image do Google, fallback para image local
   const coverImage = restaurant.cover_image || restaurant.image || '/placeholder-restaurant.jpg';
 
-  // Verificar se restaurante está salvo em alguma lista
+  // Verificar se restaurante está salvo (apenas 1x no mount)
   useEffect(() => {
+    let mounted = true;
+    
     const checkIfSaved = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setCheckingSaved(false);
-          return;
-        }
+        if (!user || !mounted) return;
 
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('saved_restaurants')
           .select('id')
           .eq('user_id', user.id)
           .eq('restaurant_id', restaurant.id)
           .limit(1);
 
-        if (!error && data && data.length > 0) {
+        if (mounted && data && data.length > 0) {
           setIsSaved(true);
         }
       } catch (err) {
         console.error('Erro ao verificar salvo:', err);
-      } finally {
-        setCheckingSaved(false);
       }
     };
 
     checkIfSaved();
+    return () => { mounted = false; };
   }, [restaurant.id]);
 
-  const handleHeartClick = (e: React.MouseEvent) => {
+  const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowSaveModal(true);
   };
 
   const handleSaved = () => {
-    // Revalidar estado após salvar
     setIsSaved(true);
   };
 
@@ -93,16 +89,16 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
           {/* Gradient Overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
 
-          {/* Save Button */}
+          {/* Add to List Button */}
           <button
-            onClick={handleHeartClick}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 border-none flex items-center justify-center cursor-pointer shadow-md transition-transform duration-200 hover:scale-110"
+            onClick={handlePlusClick}
+            className={`absolute top-3 right-3 w-9 h-9 rounded-full border-none flex items-center justify-center cursor-pointer shadow-md transition-all duration-200 hover:scale-110 ${
+              isSaved 
+                ? 'bg-red text-white' 
+                : 'bg-white/90 text-dark'
+            }`}
           >
-            <Heart
-              size={18}
-              fill={isSaved ? '#FF3B30' : 'none'}
-              className={isSaved ? 'text-red' : 'text-dark'}
-            />
+            <Plus size={20} className={isSaved ? 'rotate-45' : ''} />
           </button>
 
           {/* Rating Badge */}

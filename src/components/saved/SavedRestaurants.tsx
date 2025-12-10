@@ -72,8 +72,8 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
 
   useEffect(() => {
     if (lists.length > 0 && !activeListId) {
-      const toTry = lists.find((l) => l.system_type === 'to_try');
-      setActiveListId(toTry?.id || lists[0].id);
+      const wantToGo = lists.find((l) => l.system_type === 'want_to_go');
+      setActiveListId(wantToGo?.id || lists[0].id);
     }
   }, [lists, activeListId]);
 
@@ -183,7 +183,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
           >
             <ChevronLeft size={24} className="text-dark" />
           </button>
-          <h1 className="text-xl font-bold font-display text-dark">Restaurantes Salvos</h1>
+          <h1 className="text-xl font-bold font-display text-dark">Minhas Listas</h1>
           <button
             onClick={() => setShowCreateModal(true)}
             className="w-10 h-10 rounded-full border-none bg-red cursor-pointer flex items-center justify-center shadow-[0_2px_8px_rgba(255,59,48,0.3)]"
@@ -315,7 +315,7 @@ export const SavedRestaurants: React.FC<SavedRestaurantsProps> = ({
               Nenhum restaurante aqui ainda
             </p>
             <p className="text-sm">
-              {activeList?.system_type === 'to_try'
+              {activeList?.system_type === 'want_to_go'
                 ? 'Salve restaurantes que quer experimentar!'
                 : 'Adicione restaurantes a esta lista.'}
             </p>
@@ -593,7 +593,7 @@ const SwipeableRestaurantCard: React.FC<SwipeableCardProps> = ({
           </div>
 
           {/* Action Button */}
-          {listType === 'to_try' && !restaurant.visited && (
+          {listType === 'want_to_go' && !restaurant.visited && (
             <button
               onClick={onMarkVisited}
               className="mt-2 py-2 px-3 bg-red/10 text-red border-none rounded-lg text-xs font-semibold cursor-pointer"
