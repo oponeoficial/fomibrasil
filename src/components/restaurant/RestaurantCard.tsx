@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Star, MapPin } from 'lucide-react';
+import { Plus, Star, MapPin, Bookmark, Loader2 } from 'lucide-react';
 import { Restaurant } from '../../types';
 import { SaveToListModal } from './SaveToListModal';
 import { supabase } from '../../lib/supabase';
@@ -28,6 +28,8 @@ const tagTextColors: Record<string, string> = {
 export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSelect }) => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isInWantToGo, setIsInWantToGo] = useState(false);
+  const [savingWantToGo, setSavingWantToGo] = useState(false);
 
   // Usar cover_image do Google, fallback para image local
   const coverImage = restaurant.cover_image || restaurant.image || '/placeholder-restaurant.jpg';
@@ -43,13 +45,17 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
 
         const { data } = await supabase
           .from('saved_restaurants')
-          .select('id')
+          .select('list_id, saved_lists!inner(system_type)')
           .eq('user_id', user.id)
-          .eq('restaurant_id', restaurant.id)
-          .limit(1);
+          .eq('restaurant_id', restaurant.id);
 
         if (mounted && data && data.length > 0) {
           setIsSaved(true);
+          // Verificar se está na lista "Quero ir"
+          const inWantToGo = data.some((s: { saved_lists: { system_type: string | null } }) => 
+            s.saved_lists?.system_type === 'want_to_go'
+          );
+          setIsInWantToGo(inWantToGo);
         }
       } catch (err) {
         console.error('Erro ao verificar salvo:', err);
@@ -63,6 +69,96 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
   const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowSaveModal(true);
+  };
+
+  const handleWantToGo = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (savingWantToGo) return;
+    
+    setSavingWantToGo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert('Faça login para salvar restaurantes');
+        setSavingWantToGo(false);
+        return;
+      }
+
+      if (isInWantToGo) {
+        // Remover da lista "Quero ir"
+        const { data: wantToGoList } = await supabase
+          .from('saved_lists')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('system_type', 'want_to_go')
+          .single();
+
+        if (wantToGoList) {
+          await supabase
+            .from('saved_restaurants')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('restaurant_id', restaurant.id)
+            .eq('list_id', wantToGoList.id);
+        }
+        setIsInWantToGo(false);
+        
+        // Verificar se ainda está em alguma lista
+        const { data: remaining } = await supabase
+          .from('saved_restaurants')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('restaurant_id', restaurant.id)
+          .limit(1);
+        
+        if (!remaining || remaining.length === 0) {
+          setIsSaved(false);
+        }
+      } else {
+        // Adicionar à lista "Quero ir"
+        const { data: existingList } = await supabase
+          .from('saved_lists')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('system_type', 'want_to_go')
+          .single();
+
+        let listId = existingList?.id;
+
+        // Se não existir, criar
+        if (!listId) {
+          const { data: newList } = await supabase
+            .from('saved_lists')
+            .insert({
+              user_id: user.id,
+              name: 'Quero ir',
+              icon: '🏃',
+              is_system: true,
+              system_type: 'want_to_go',
+              sort_order: 1,
+            })
+            .select('id')
+            .single();
+          listId = newList?.id;
+        }
+
+        if (listId) {
+          await supabase
+            .from('saved_restaurants')
+            .upsert({
+              user_id: user.id,
+              restaurant_id: restaurant.id,
+              list_id: listId,
+            }, { onConflict: 'user_id,restaurant_id,list_id' });
+        }
+        setIsInWantToGo(true);
+        setIsSaved(true);
+      }
+    } catch (err) {
+      console.error('Erro ao salvar:', err);
+    } finally {
+      setSavingWantToGo(false);
+    }
   };
 
   const handleSaved = () => {
@@ -89,17 +185,39 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({ restaurant, onSe
           {/* Gradient Overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
 
-          {/* Add to List Button */}
-          <button
-            onClick={handlePlusClick}
-            className={`absolute top-3 right-3 w-9 h-9 rounded-full border-none flex items-center justify-center cursor-pointer shadow-md transition-all duration-200 hover:scale-110 ${
-              isSaved 
-                ? 'bg-red text-white' 
-                : 'bg-white/90 text-dark'
-            }`}
-          >
-            <Plus size={20} className={isSaved ? 'rotate-45' : ''} />
-          </button>
+          {/* Action Buttons */}
+          <div className="absolute top-3 right-3 flex gap-2">
+            {/* Quero ir Button */}
+            <button
+              onClick={handleWantToGo}
+              disabled={savingWantToGo}
+              className={`w-9 h-9 rounded-full border-none flex items-center justify-center cursor-pointer shadow-md transition-all duration-200 hover:scale-110 ${
+                isInWantToGo 
+                  ? 'bg-red text-white' 
+                  : 'bg-white/90 text-dark'
+              }`}
+              title={isInWantToGo ? 'Remover de Quero ir' : 'Quero ir'}
+            >
+              {savingWantToGo ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Bookmark size={18} fill={isInWantToGo ? 'white' : 'none'} />
+              )}
+            </button>
+
+            {/* Add to List Button */}
+            <button
+              onClick={handlePlusClick}
+              className={`w-9 h-9 rounded-full border-none flex items-center justify-center cursor-pointer shadow-md transition-all duration-200 hover:scale-110 ${
+                isSaved 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-white/90 text-dark'
+              }`}
+              title="Adicionar em lista"
+            >
+              <Plus size={20} className={isSaved ? 'rotate-45' : ''} />
+            </button>
+          </div>
 
           {/* Rating Badge */}
           {restaurant.rating && (
