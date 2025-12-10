@@ -21,16 +21,17 @@ interface Restaurant {
 }
 
 const RATING_CATEGORIES = [
-  { key: 'proposta', label: 'Proposta', weight: '33.33%', description: 'Conceito e proposta do restaurante' },
-  { key: 'comida', label: 'Comida', weight: '33.33%', description: 'Sabor e qualidade dos pratos' },
-  { key: 'apresentacao', label: 'Apresentação', weight: '22.22%', description: 'Visual dos pratos e ambiente' },
-  { key: 'atendimento', label: 'Atendimento', weight: '11.11%', description: 'Serviço e hospitalidade' },
+  { key: 'proposta', label: 'Proposta', description: 'Conceito e proposta do restaurante' },
+  { key: 'comida', label: 'Comida', description: 'Sabor e qualidade dos pratos' },
+  { key: 'apresentacao', label: 'Apresentação', description: 'Visual dos pratos e ambiente' },
+  { key: 'atendimento', label: 'Atendimento', description: 'Serviço e hospitalidade' },
 ];
 
 export const NewReview: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -194,7 +195,7 @@ export const NewReview: React.FC = () => {
       </header>
 
       {/* Content */}
-      <div className="p-4 pb-32">
+      <div className="p-4 pb-44">
         {/* Selecionar Restaurante */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-dark mb-2">
@@ -290,26 +291,57 @@ export const NewReview: React.FC = () => {
             ))}
             
             {photos.length < 5 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="w-24 h-24 rounded-xl border-2 border-dashed border-gray/30 flex flex-col items-center justify-center gap-1 text-gray hover:border-red hover:text-red transition-colors flex-shrink-0"
-              >
-                {uploadingPhoto ? (
-                  <Loader2 size={24} className="animate-spin" />
-                ) : (
-                  <>
-                    <Camera size={24} />
-                    <span className="text-xs">Adicionar</span>
-                  </>
-                )}
-              </button>
+              <>
+                {/* Botão Galeria */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="w-24 h-24 rounded-xl border-2 border-dashed border-gray/30 flex flex-col items-center justify-center gap-1 text-gray hover:border-red hover:text-red transition-colors flex-shrink-0"
+                >
+                  {uploadingPhoto ? (
+                    <Loader2 size={24} className="animate-spin" />
+                  ) : (
+                    <>
+                      <ImageIcon size={24} />
+                      <span className="text-xs">Galeria</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Botão Câmera */}
+                <button
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="w-24 h-24 rounded-xl border-2 border-dashed border-gray/30 flex flex-col items-center justify-center gap-1 text-gray hover:border-red hover:text-red transition-colors flex-shrink-0"
+                >
+                  {uploadingPhoto ? (
+                    <Loader2 size={24} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Camera size={24} />
+                      <span className="text-xs">Câmera</span>
+                    </>
+                  )}
+                </button>
+              </>
             )}
           </div>
+          
+          {/* Input para Galeria */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+          
+          {/* Input para Câmera */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
             onChange={handlePhotoUpload}
             className="hidden"
           />
@@ -334,7 +366,6 @@ export const NewReview: React.FC = () => {
               <RatingRow
                 key={category.key}
                 label={category.label}
-                weight={category.weight}
                 description={category.description}
                 value={ratings[category.key as keyof typeof ratings]}
                 onChange={(value) => setRatings(prev => ({ ...prev, [category.key]: value }))}
@@ -345,7 +376,7 @@ export const NewReview: React.FC = () => {
       </div>
 
       {/* Botão Publicar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-black/5">
+      <div className="fixed bottom-[70px] left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-black/5">
         <button
           onClick={handlePublish}
           disabled={!canPublish || publishing}
@@ -447,20 +478,16 @@ export const NewReview: React.FC = () => {
 // Componente de linha de rating
 interface RatingRowProps {
   label: string;
-  weight: string;
   description: string;
   value: number;
   onChange: (value: number) => void;
 }
 
-const RatingRow: React.FC<RatingRowProps> = ({ label, weight, description, value, onChange }) => {
+const RatingRow: React.FC<RatingRowProps> = ({ label, description, value, onChange }) => {
   return (
     <div className="bg-white rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
-        <div>
-          <span className="font-medium text-dark">{label}</span>
-          <span className="text-xs text-gray ml-2">({weight})</span>
-        </div>
+        <span className="font-medium text-dark">{label}</span>
         {value > 0 && (
           <span className="text-sm font-bold text-red">{value}/5</span>
         )}

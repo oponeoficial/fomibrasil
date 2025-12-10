@@ -16,23 +16,20 @@ const Loading = () => (
   </div>
 );
 
+// Layout
+const AppLayout = lazy(() => import('../components/layout/AppLayout'));
+
 // Onboarding
 const Welcome = lazy(() => import('../components/onboarding/Welcome'));
 const Onboarding = lazy(() => import('../components/onboarding'));
 
-// Auth - apenas login (signup acontece no onboarding)
+// Auth
 const Login = lazy(() => import('../components/auth/AuthForm'));
 
-// App
+// App Pages
 const Feed = lazy(() => import('../pages/Feed'));
-
-// Saved
 const SavedRestaurants = lazy(() => import('../components/saved/SavedRestaurants'));
-
-// Restaurant Details
 const RestaurantPage = lazy(() => import('../pages/RestaurantPage'));
-
-// Reviews
 const NewReview = lazy(() => import('../components/review/NewReview'));
 const ActivityFeed = lazy(() => import('../components/activity/ActivityFeed'));
 
@@ -45,6 +42,10 @@ const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType<a
 );
 
 export const router = createBrowserRouter([
+  // ========================================
+  // Rotas SEM navegação inferior
+  // ========================================
+  
   // Onboarding
   { path: '/', element: withSuspense(Welcome) },
   { path: '/onboarding', element: withSuspense(Onboarding) },
@@ -54,19 +55,22 @@ export const router = createBrowserRouter([
   { path: '/onboarding/preferences', element: <Navigate to="/onboarding" replace /> },
   { path: '/signup', element: <Navigate to="/onboarding" replace /> },
 
-  // Auth - apenas login
+  // Auth
   { path: '/login', element: withSuspense(Login) },
 
-  // App
-  { path: '/feed', element: withSuspense(Feed) },
-  { path: '/saved', element: withSuspense(SavedRestaurants) },
-  
-  // Restaurant Details
-  { path: '/restaurant/:id', element: withSuspense(RestaurantPage) },
-
-  // Reviews
-  { path: '/new-review', element: withSuspense(NewReview) },
-  { path: '/activity', element: withSuspense(ActivityFeed) },
+  // ========================================
+  // Rotas COM navegação inferior (AppLayout)
+  // ========================================
+  {
+    element: withSuspense(AppLayout),
+    children: [
+      { path: '/feed', element: withSuspense(Feed) },
+      { path: '/saved', element: withSuspense(SavedRestaurants) },
+      { path: '/restaurant/:id', element: withSuspense(RestaurantPage) },
+      { path: '/new-review', element: withSuspense(NewReview) },
+      { path: '/activity', element: withSuspense(ActivityFeed) },
+    ],
+  },
 
   // Fallback
   { path: '*', element: <Navigate to="/" replace /> },

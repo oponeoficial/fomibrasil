@@ -65,7 +65,7 @@ export const ActivityFeed: React.FC = () => {
           created_at,
           profiles!reviews_user_id_fkey (
             id,
-            name,
+            full_name,
             avatar_url,
             username
           ),
@@ -83,7 +83,12 @@ export const ActivityFeed: React.FC = () => {
 
       const formattedReviews = (data || []).map((review: any) => ({
         ...review,
-        user: review.profiles || { id: '', name: 'Usuário', avatar_url: null, username: null },
+        user: {
+          id: review.profiles?.id || '',
+          name: review.profiles?.full_name || 'Usuário',
+          avatar_url: review.profiles?.avatar_url || null,
+          username: review.profiles?.username || null,
+        },
         restaurant: review.restaurants || { id: '', name: 'Restaurante', neighborhood: null, cover_image: null },
       }));
 
@@ -120,7 +125,7 @@ export const ActivityFeed: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream pb-24">
+    <div className="min-h-screen bg-cream pb-28">
       {/* Header */}
       <header className="sticky top-0 bg-cream/95 backdrop-blur-md p-4 border-b border-black/5 z-10">
         <div className="flex items-center justify-between">

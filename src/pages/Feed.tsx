@@ -9,7 +9,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Settings2, Loader2 } from 'lucide-react';
 // Layout unificado - import de arquivo único
-import { Header, BottomNavigation, Sidebar, FilterPanel } from '../components/layout/Layout';
+import { Header, Sidebar, FilterPanel } from '../components/layout/Layout';
 import { RestaurantCard } from '../components/restaurant/RestaurantCard';
 import { RestaurantDetails } from '../components/restaurant/RestaurantDetails';
 import { Profile } from '../components/profile/Profile';
@@ -17,7 +17,6 @@ import { useFeedRestaurants } from '../hooks/useRestaurants';
 import { getGreeting, getContextualMessage } from '../utils/helpers';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
-import { TabId } from '../types';
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -51,24 +50,6 @@ export default function Feed() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
-  };
-
-  // Handler para navegação das tabs
-  const handleTabChange = (tab: TabId) => {
-    if (tab === 'newreview') {
-      navigate('/new-review');
-      return;
-    }
-    if (tab === 'activity') {
-      navigate('/activity');
-      return;
-    }
-    if (tab === 'discover') {
-      // TODO: implementar descobrir
-      setActiveTab(tab);
-      return;
-    }
-    setActiveTab(tab);
   };
 
   return (
@@ -224,8 +205,6 @@ export default function Feed() {
           </div>
         )}
       </main>
-
-      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Restaurant Details Modal */}
       {selectedRestaurant && (
